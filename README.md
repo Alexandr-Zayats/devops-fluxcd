@@ -7,6 +7,12 @@
 
 Composable Kubernetes and FluxCD building blocks for operating a shared platform through GitOps. The catalogue covers sources, operators, cluster infrastructure, observability, security controls, data services and developer-facing services.
 
+## Project profile
+
+Reusable platform catalogue for infrastructure teams standardizing cluster
+bootstrap and service delivery. Consume selected bases from an environment
+repository; do not apply the entire catalogue blindly.
+
 ## Catalogue
 
 | Area | Examples |
