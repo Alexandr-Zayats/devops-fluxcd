@@ -1,0 +1,271 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: aws-rabbitmq-alerts
+  namespace: monitoring
+  labels:
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+    vmrules: aws-rabbitmq
+spec:
+  groups:
+
+  - name: aws-rabbitmq-cpu
+    rules:
+      - alert: RabbitMQHighCPUUtilization
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_broker_cpuutilization_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 75
+        for: 5m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has high CPU utilization"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            CPU utilization is above 75% for more than 5 minutes.
+            Current value: {{ $value }}%.
+            Consider optimizing message processing or scaling.
+
+      - alert: RabbitMQCriticalCPUUtilization
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_broker_cpuutilization_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 90
+        for: 3m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has critical CPU utilization"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            CPU utilization is above 90% for more than 3 minutes.
+            Current value: {{ $value }}%.
+            Immediate action required. Risk of message processing delays.
+
+  - name: aws-rabbitmq-memory
+    rules:
+      - alert: RabbitMQHighMemoryUtilization
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_broker_memoryutilization_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 80
+        for: 5m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has high memory utilization"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            memory utilization is above 80% for more than 5 minutes.
+            Current value: {{ $value }}%.
+            Consider reviewing queue sizes and message retention policies.
+
+      - alert: RabbitMQCriticalMemoryUtilization
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_broker_memoryutilization_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 90
+        for: 3m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has critical memory utilization"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            memory utilization is above 90% for more than 3 minutes.
+            Current value: {{ $value }}%.
+            Risk of broker instability. Immediate action required.
+
+  - name: aws-rabbitmq-connections
+    rules:
+      - alert: RabbitMQHighConnectionCount
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_connection_count_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 500
+        for: 5m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has high connection count"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            has more than 500 active connections for more than 5 minutes.
+            Current value: {{ $value }} connections.
+            Consider connection pooling or reviewing connection management.
+
+      - alert: RabbitMQCriticalConnectionCount
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_connection_count_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 1000
+        for: 3m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has critical connection count"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            has more than 1000 active connections for more than 3 minutes.
+            Current value: {{ $value }} connections.
+            Immediate scaling or connection optimization required.
+
+  - name: aws-rabbitmq-queues
+    rules:
+      - alert: RabbitMQHighQueueCount
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_queue_count_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 100
+        for: 10m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has high queue count"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            has more than 100 queues for more than 10 minutes.
+            Current value: {{ $value }} queues.
+            Consider consolidating queues or reviewing queue architecture.
+
+  - name: aws-rabbitmq-messages
+    rules:
+      - alert: RabbitMQHighMessageCount
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_message_count_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 100000
+        for: 5m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has high message count"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            has more than 100,000 messages for more than 5 minutes.
+            Current value: {{ $value }} messages.
+            Review consumer performance and message processing rate.
+
+      - alert: RabbitMQCriticalMessageCount
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_message_count_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 500000
+        for: 3m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has critical message count"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            has more than 500,000 messages for more than 3 minutes.
+            Current value: {{ $value }} messages.
+            Message backlog is critical. Immediate consumer scaling required.
+
+      - alert: RabbitMQMessageBacklogGrowing
+        expr: |
+          (
+            max by (dimension_Broker, kubeClusterName) (
+              aws_amazonmq_message_count_average{
+                job="prometheus-yace",
+                dimension_Broker!=""
+              }
+            )
+            -
+            max by (dimension_Broker, kubeClusterName) (
+              aws_amazonmq_message_count_average{
+                job="prometheus-yace",
+                dimension_Broker!=""
+              } offset 15m
+            )
+          ) > 1000
+          and
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_message_count_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 10000
+        for: 15m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} message backlog is growing"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            message backlog increased by more than 1000 messages in the last 15 minutes.
+            Current message count: {{ $value }}.
+            Consumers are not keeping up with message production.
+            Review consumer performance and scaling.
+
+      - alert: RabbitMQNoConsumers
+        expr: |
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_consumer_count_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) == 0
+          and
+          max by (dimension_Broker, kubeClusterName) (
+            aws_amazonmq_message_count_average{
+              job="prometheus-yace",
+              dimension_Broker!=""
+            }
+          ) > 0
+        for: 5m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RabbitMQ broker {{ $labels.dimension_Broker }} has messages but no consumers"
+          description: >
+            RabbitMQ broker {{ $labels.dimension_Broker }}
+            has messages but no active consumers for more than 5 minutes.
+            Messages are not being processed. Immediate investigation required.
+            Check consumer application status and connectivity.
+

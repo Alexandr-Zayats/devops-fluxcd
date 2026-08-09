@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../../services/ingress-nginx
+
+namePrefix: public-shared-
+namespace: kube-system
+
+patchesStrategicMerge:
+- service-patch.yaml

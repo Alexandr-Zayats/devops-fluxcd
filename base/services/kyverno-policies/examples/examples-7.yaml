@@ -1,0 +1,60 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: secrets-sync
+  # namespace: kyverno
+data:
+  namespaces: flux-system
+
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: sync-secrets-services
+  annotations:
+    policies.kyverno.io/title: Sync Secrets
+    policies.kyverno.io/category: Sample
+    policies.kyverno.io/subject: Secret
+    policies.kyverno.io/minversion: 1.6.0
+    policies.kyverno.io/description: >-
+      Secrets like registry credentials often need to exist in multiple
+      Namespaces so Pods there have access. Manually duplicating those Secrets
+      is time consuming and error prone. This policy will copy a
+      Secret called `regcred` which exists in the `default` Namespace to
+      new Namespaces when they are created. It will also push updates to
+      the copied Secrets should the source Secret be changed.
+spec:
+  rules:
+  - name: sync-secrets
+    match:
+      any:
+      - resources:
+          kinds:
+            - Secret
+          operations:
+            - CREATE
+          selector:
+            matchLabels:
+              secrets-sync: true
+    context:
+      - name: namespaces
+        variable:
+          jmesPath: request.object.metadata.namespace
+      #- name: namespaces
+      #  apiCall:
+      #    urlPath: "/apis/networking.k8s.io/v1/Namespaces"
+      #    jmesPath: "items[?metadata.labels.\"label-key\"=='label-value'].metadata.name"
+    preconditions:
+      any:
+      - key: '{{namespaces}}'
+        operator: Equals
+        value: 'flux-system'
+    generate:
+      generateExisting: false
+      synchronize: true
+      foreach:
+        - list: "{{namespaces}}"
+          dataList:
+            - metadata: "{{request.object.metadata}}"
+              data: "{{request.object.data}}"

@@ -1,0 +1,27 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ${env}-${app}-mongodb
+spec:
+  interval: 10m
+  releaseName: mongodb
+  chart:
+    spec:
+      chart: mongodb
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami-oci
+        namespace: flux-system
+      version: 16.5.32
+  values:
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    tolerations:
+      - key: pool
+        value: infra
+        effect: NoSchedule
+  valuesFrom:
+    - kind: ConfigMap
+      name: mongodb-values
+      valuesKey: values.yaml

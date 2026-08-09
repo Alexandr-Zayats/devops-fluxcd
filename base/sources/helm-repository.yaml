@@ -1,0 +1,60 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: cost-analyzer
+  namespace: flux-system
+spec:
+  interval: 10h
+  url: https://kubecost.github.io/cost-analyzer/
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: fairwinds
+  namespace: flux-system
+spec:
+  interval: 10h
+  url: https://charts.fairwinds.com/stable
+
+#---
+#apiVersion: source.toolkit.fluxcd.io/v1
+#kind: HelmRepository
+#metadata:
+#  name: openebs-nfs
+#  namespace: flux-system
+#spec:
+#  interval: 1m
+#  url: https://openebs.github.io/dynamic-nfs-provisioner
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: mysql-oracle-operator
+  namespace: flux-system
+spec:
+  interval: 10h
+  url: https://mysql.github.io/mysql-operator/
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: velero
+  namespace: flux-system
+spec:
+  interval: 10h
+  url: https://vmware-tanzu.github.io/helm-charts
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: allure-testops
+  namespace: flux-system
+spec:
+  interval: 10h
+  url: https://dl.qameta.io/artifactory/helm
+

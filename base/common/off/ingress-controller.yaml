@@ -1,0 +1,46 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ingress.private
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: prometheus.crd
+    - name: node-pool.infra
+  interval: 60m0s
+  sourceRef:
+    kind: GitRepository
+    name: base
+    namespace: flux-system
+  path: infra/ingress-nginx-controllers/private-shared
+  targetNamespace: kube-system
+  prune: true
+  wait: true
+  timeout: 5m
+  force: true
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: private-shared-ingress-nginx
+      namespace: kube-system
+    - apiVersion: v1
+      kind: Service
+      name: private-shared-ingress-nginx-controller
+      namespace: kube-system
+    - apiVersion: v1
+      kind: Service
+      name: private-shared-ingress-nginx-controller-admission
+      namespace: kube-system
+    - apiVersion: v1
+      kind: Service
+      name: private-shared-ingress-nginx-controller-metrics
+      namespace: kube-system
+    - apiVersion: apps/v1
+      kind: Deployment 
+      name: private-shared-ingress-nginx-controller
+      namespace: kube-system
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: terraform-to-flux-bridge

@@ -1,0 +1,14 @@
+---
+global:
+  defaultStorageClass: gp2
+auth:
+  postgresPassword: ${DB_PASSWORD}
+  username: ${DB_USER}
+  password: ${DB_USER_PASSWORD}
+  database: ${DB_NAME}
+  replicationUsername: repl_user
+  replicationPassword: ${DB_USER_REPLICA_PASSWORD}
+image:
+  registry: docker.io
+  repository: bitnamilegacy/postgresql
+  tag: 17.5.0-debian-12-r20

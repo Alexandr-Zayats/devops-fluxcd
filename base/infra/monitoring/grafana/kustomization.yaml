@@ -1,0 +1,30 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - release.yaml
+  - grafana.yaml
+  - grafana-oauth-secret.yaml
+  - dashboards.yaml
+  - datasource.yaml
+
+configMapGenerator:
+  - name: grafana-dashboard
+    files:
+      - dashboards/infra/environment_status_overview.json
+      - dashboards/infra/environment_details.json
+      - dashboards/devops/fluxcd_cluster.json
+      - dashboards/devops/fluxcd_controlplance.json
+      - dashboards/devops/vm-alert.json
+      - dashboards/devops/vm-operator.json
+      - dashboards/infra/cluster_monitoring.json
+      - dashboards/infra/infrastructure_application.json
+      - dashboards/infra/kube_state_metrics.json
+      - dashboards/infra/kubernetes_cluster_monitoring.json
+      - dashboards/infra/node_exporter.json
+      - dashboards/infra/infrastructure_overview.json
+      - dashboards/infra/application_monitoring.json
+      - dashboards/infra/infrastructure_services.json
+
+generatorOptions:
+  disableNameSuffixHash: true

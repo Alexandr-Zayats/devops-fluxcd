@@ -1,0 +1,246 @@
+---
+replicaCount: 1
+
+updateStrategy: {}
+  # type: RollingUpdate
+  # rollingUpdate:
+  #   maxSurge: 1
+  #   maxUnavailable: 0
+
+# For supporting pulling from private registries
+imagePullSecretName:
+
+image:
+  repository: 000000000000.dkr.ecr.us-east-1.amazonaws.com/tools/openvpn
+  tag: dev-02.01.333
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  externalPort: ${PORT}
+  internalPort: ${PORT}
+  # hostPort: 443
+  externalIPs: []
+  nodePort: ${nodePort}
+  # clusterIP: None
+  # LoadBalancerSourceRanges: 0.0.0.0/0
+  # loadBalancerIP: 10.0.0.1
+
+  ## Here annotations can be added to the openvpn service
+  # annotations:
+  #   external-dns.alpha.kubernetes.io/hostname: vpn.example.com
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    # service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: ${DOMAIN}
+
+## Here annotations can be added to the openvpn pod
+# podAnnotations:
+#   backup.ark.heptio.com/backup-volumes: certs
+podAnnotations:
+  configmap.reloader.stakater.com/reload: openvpn-values
+
+# Add privileged init container to enable IPv4 forwarding
+ipForwardInitContainer: true
+
+resources:
+  limits:
+    cpu: 400m
+    memory: 200Mi
+  requests:
+    cpu: 350m
+    memory: 175Mi
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  successThreshold: 2
+
+persistence:
+  enabled: true
+  # subPath: openvpn
+  ## A manually managed Persistent Volume and Claim
+  ## Requires persistence.enabled: true
+  ## If defined, PVC must be created manually before volume will be bound
+  existingClaim: ""
+
+  ## openvpn data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClass: "gp3-5k-250-ext4"
+  accessMode: ReadWriteOnce
+  size: 2G
+openvpn:
+  # Network allocated for openvpn clients (default: 10.240.0.0).
+  OVPN_NETWORK: ${network}
+  # Network subnet allocated for openvpn client (default: 255.255.0.0).
+  OVPN_SUBNET: ${netmask}
+  # Protocol used by openvpn tcp or udp (default: udp).
+  OVPN_PROTO: ${PROTOCOL}
+  # Kubernetes pod network (optional).
+  iOVPN_K8S_POD_NETWORK: "10.0.0.0"
+  # Kubernetes pod network subnet (optional).
+  OVPN_K8S_POD_SUBNET: "255.0.0.0"
+  # Kubernetes service network (optional).
+  # Define openvpn.OVPN_K8S_SVC_NETWORK and openvpn.OVPN_K8S_SVC_SUBNET if it's needed to create a separate route to Kubernates service subnet
+  # OVPN_K8S_SVC_NETWORK:
+  # Kubernetes service network subnet (optional).
+  # OVPN_K8S_SVC_SUBNET:
+  # Set default route which openvpn figures basing on network routes inside openvpn pod
+  DEFAULT_ROUTE_ENABLED: false
+  # Server certificate data
+  # keystoreSecret:
+  # secret with openvpn certificates. If specified, certificates are taken from the secret
+  # create secret with such command:
+  #    kubectl create secret generic openvpn-keystore-secret --from-file=./server.key --from-file=./ca.crt --from-file=./server.crt --from-file=./dh.pem [--from-file=./crl.pem]  [--from-file=./ta.key]
+  # Push a `dhcp-option DOMAIN` config
+  dhcpOptionDomain: true
+  # Redirect all client traffic through VPN
+  redirectGateway: false
+  # Use/generate certificate revocation list
+  useCrl: false
+  # Use/generate a ta.key (https://openvpn.net/community-resources/hardening-openvpn-security/)
+  taKey: yes
+  #Set send/receive buffers
+  OVPN_SNDBUF: 0
+  OVPN_RCVBUF: 0
+  # Override default cipher
+  cipher: AES-256-GCM
+  #Adds an additional HMAC signature to all SSL/TLS handshake packets 
+  auth: SHA512
+  #Use TLS to check server identity
+  remoteCertTls: true
+  #Never give up trying to connect to the server 
+  resolvretry: infinite
+  #set keydirection 
+  keyDirection: 1
+  #Set the appropriate level of log file verbosity
+  verb: 3
+  # Lines appended to the end of the server configuration file
+  serverConf: |
+    tun-mtu 1500
+    # Use auth-token for renegotiation so MFA is checked on initial login only.
+    reneg-sec 86400
+    inactive 0
+    script-security 3
+    topology subnet
+    # verify-client-cert none
+    # verify-client-cert require
+    username-as-common-name
+    auth-user-pass-verify /etc/openvpn/setup/auth-mfa.sh via-env
+    auth-gen-token 86400 external-auth
+
+    # push "redirect-gateway def1"
+    push "allow-pull-fqdn"
+    # push "dhcp-option DNS 172.20.0.10"
+    # push "dhcp-option DNS 10.10.0.2"
+    push "dhcp-option DOMAIN service.int"
+    push "dhcp-option DOMAIN tools.int"
+    push "dhcp-option DOMAIN feature.int"
+    push "dhcp-option DOMAIN demo-platform.int"
+    push "dhcp-option DOMAIN demo-platform.ca"
+    push "dhcp-option DOMAIN dev.demo-platform.ca"
+    push "dhcp-option DOMAIN test.demo-platform.ca"
+    push "dhcp-option DOMAIN stg.demo-platform.ca"
+    push "dhcp-option DOMAIN tools.demo-platform.ca"
+    push "dhcp-option DOMAIN service.demo-platform.ca"
+    push "dhcp-option DOMAIN example-org-gql.int.databet.cloud"
+    push "dhcp-option DOMAIN platform-example-org-caon.octoplay.com"
+    push "dhcp-option DOMAIN callbacks.tools.beckhunder.ca"
+    push "dhcp-option DOMAIN octoplay.com"
+    push "dhcp-option DOMAIN play-prodcopy.oryxgaming.com"
+    push "dhcp-option DOMAIN cdn.oryxgaming.com"
+    push "dhcp-option DOMAIN frontend-dev.octoplay.com"
+    push "route 10.60.0.0 255.255.0.0 vpn_gateway"
+    push "route 10.51.0.0 255.255.0.0 vpn_gateway"
+    push "route 10.52.0.0 255.255.0.0 vpn_gateway"
+    push "route 10.53.0.0 255.255.0.0 vpn_gateway"
+    push "route 10.54.0.0 255.255.0.0 vpn_gateway"
+    push "route 10.55.0.0 255.255.0.0 vpn_gateway"
+    push "route 10.56.0.0 255.255.0.0 vpn_gateway"
+    push "route 172.64.0.0 255.255.0.0 vpn_gateway"
+    push "route 172.66.0.0 255.255.0.0 vpn_gateway"
+    push "route 172.20.0.0 255.255.0.0 vpn_gateway"
+    push "route 52.60.189.70 255.255.255.255 vpn_gateway"
+    push "route 15.157.39.130 255.255.255.255 vpn_gateway"
+    push "route 15.156.155.191 255.255.255.255 vpn_gateway"
+    push "route 35.204.181.198 255.255.255.255 vpn_gateway"
+    push "route 35.204.13.112 255.255.255.255 vpn_gateway"    
+    push "route 130.185.250.128 255.255.255.224 vpn_gateway"
+    push "route dev.demo-platform.ca 255.255.255.255 vpn_gateway"
+    # dev.demo-platform.ca CloudFront A records
+    push "route 13.226.155.29 255.255.255.255 vpn_gateway"
+    push "route 13.226.155.49 255.255.255.255 vpn_gateway"
+    push "route 13.226.155.50 255.255.255.255 vpn_gateway"
+    push "route 13.226.155.102 255.255.255.255 vpn_gateway"
+    push "route 104.17.228.9 255.255.255.255 vpn_gateway"
+    push "route 104.17.227.9 255.255.255.255 vpn_gateway"
+    push "route 104.21.8.239 255.255.255.255 vpn_gateway"
+    # push "route-nopull"
+
+  #  max-clients 100
+  #  client-to-client
+
+  # Lines appended to the end of the client configuration file
+  # Example: if all of your clients are Ubuntu (18.04+) you may need to install
+  # the update-systemd-resolved package (apt install update-systemd-resolved) then
+  # set the following to make sure systemd-resolved routes DNS requests correctly:
+  clientConf: |
+    tun-mtu 1500
+    data-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305:AES-256-CBC
+    proto ${PROTOCOL}
+    # script-security 2
+    # up /etc/openvpn/update-systemd-resolved
+    # up-restart
+    # down /etc/openvpn/update-systemd-resolved
+    # down-pre
+    #route-metric 50
+    #route-nopull
+
+  # Enable istio support for openvpn connections
+  istio:
+    enabled: false
+    proxy:
+      port: 15001
+  iptablesExtra: []
+  # - -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+  # - -A FORWARD -m conntrack --ctstate NEW -d 10.240.0.0/255.255.0.0 -j ACCEPT
+  # - -A FORWARD -j REJECT
+
+  userDns:
+    enabled: true
+    cleanupOnStart: true
+    domain: demo-platform.int
+    namePrefix: openvpn-user
+    ttl: "60"
+    annotation: external-dns.alpha.kubernetes.io/hostname
+    serviceType: ClusterIP
+    ports:
+      - name: http
+        port: 80
+        protocol: TCP
+
+  authMfa:
+    enabled: true
+    oathSecretsPath: /etc/openvpn/certs/oath.secrets
+    totpWindow: 2
+
+  # Enable CCD support
+  ccd:
+    enabled: false
+    config: {}
+    # johndoe: "ifconfig-push 10.240.100.10 10.240.100.11"
+    # janedoe: "ifconfig-push 10.240.100.20 10.240.100.21"
+
+nodeSelector:
+  kubernetes.io/arch: amd64
+tolerations:
+  - effect: NoSchedule
+    key: pool
+    operator: Equal
+    value: vpn

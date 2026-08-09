@@ -1,0 +1,26 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: aws-yace-exporter
+  namespace: monitoring
+  labels:
+    vm-monitoring: true
+    app: prometheus-yace
+    owner: devops
+    stream: devops
+    env: ${env}
+    vmservicescrape: aws-yace
+    product: observability
+spec:
+  endpoints:
+    - port: http
+      scheme: http
+      interval: 60s
+      scrapeTimeout: 30s
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: prometheus-yace

@@ -1,0 +1,23 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: aws-load-balancer-controller
+spec:
+  interval: 1h
+  releaseName: aws-load-balancer-controller
+  values:
+    clusterName: ${eks_cluster_name}
+    vpcId: ${vpc_id}
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: ${aws_load_balancer_sa_role_arn}
+      create: true
+
+    nodeSelector:
+      pool: infra
+    tolerations:
+    - effect: NoSchedule
+      key: pool
+      operator: Equal
+      value: infra

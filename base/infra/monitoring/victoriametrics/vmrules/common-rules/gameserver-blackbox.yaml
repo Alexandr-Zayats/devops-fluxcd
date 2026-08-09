@@ -1,0 +1,254 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  labels:
+    project: common
+  name: games-http-health-check
+  namespace: monitoring
+spec:
+  groups:
+    - name: gamecore-http-checks-blackbox
+      rules:
+        - alert: gameserver.dev.ad.playdice.tech
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.dev.ad.playdice.tech/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: dev
+            severity: warning
+        - alert: card-server.dev.ad.playdice.tech
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.dev.ad.playdice.tech/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: dev
+            severity: warning
+        - alert: roulette-server.dev.ad.playdice.tech
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.dev.ad.playdice.tech/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: dev
+            severity: warning
+        - alert: gameserver.prod.ap.funartservice.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.prod.ap.funartservice.com/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: card-server.prod.ap.funartservice.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.prod.ap.funartservice.com/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: roulette-server.prod.ap.funartservice.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.prod.ap.funartservice.com/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: gameserver.prod-apn1.app.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.prod-apn1.app.ggl-service.org/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: card-server.prod-apn1.app.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.prod-apn1.app.ggl-service.org/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: roulette-server.prod-apn1.app.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.prod-apn1.app.ggl-service.org/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: gameserver.prod.app.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.prod.app.ggl-service.org/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: card-server.prod.app.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.prod.app.ggl-service.org/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: roulette-server.prod.app.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.prod.app.ggl-service.org/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: gameserver.prod.org-prod-rgs-reg.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.prod.org-prod-rgs-reg.ggl-service.org/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: card-server.prod.app.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.prod.org-prod-rgs-reg.ggl-service.org/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: roulette-server.prod.org-prod-rgs-reg.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.prod.org-prod-rgs-reg.ggl-service.org/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: gameserver.demo.ap.playnetic.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.demo.ap.playnetic.com/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: demo
+            severity: critical
+        - alert: card-server.demo.ap.playnetic.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.demo.ap.playnetic.com/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: demo
+            severity: critical
+        - alert: roulette-server.demo.ap.playnetic.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.demo.ap.playnetic.com/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: demo
+            severity: critical
+        - alert: gameserver.cert.org-nonprod-rgs-reg.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.cert.org-nonprod-rgs-reg.ggl-service.org/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: card-server.cert.org-nonprod-rgs-reg.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.cert.org-nonprod-rgs-reg.ggl-service.org/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: roulette-server.cert.org-nonprod-rgs-reg.ggl-service.org
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.cert.org-nonprod-rgs-reg.ggl-service.org/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: prod
+            severity: critical
+        - alert: gameserver.staging.ap.playnetic.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.staging.ap.playnetic.com/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: stg
+            severity: critical
+        - alert: card-server.staging.ap.playnetic.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.staging.ap.playnetic.com/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: stg
+            severity: critical
+        - alert: roulette-server.staging.ap.playnetic.com
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.staging.ap.playnetic.com/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: stg
+            severity: critical
+        - alert: gameserver.qa.ad.playdice.tech
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://gameserver.qa.ad.playdice.tech/healthz"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: tests
+            severity: warning
+        - alert: card-server.qa.ad.playdice.tech
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://card-server.qa.ad.playdice.tech/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: tests
+            severity: warning
+        - alert: roulette-server.qa.ad.playdice.tech
+          annotations:
+            description: 'curl ({{$labels.instance}}) -> http_code={{ $value }}'
+          expr: probe_http_status_code{instance="https://roulette-server.qa.ad.playdice.tech/api/v1/actuator/health"} != 200
+          for: 3m
+          labels:
+            component: games
+            env: tests
+            severity: warning

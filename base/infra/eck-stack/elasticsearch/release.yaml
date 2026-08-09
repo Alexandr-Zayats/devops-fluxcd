@@ -1,0 +1,117 @@
+---
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch
+spec:
+  version: 8.17.4
+  auth:
+    fileRealm:
+      - secretName: main-filerealm-secret
+      - secretName: main-filerealm-secret-additional
+    roles:
+      - secretName: main-roles
+  nodeSets:
+    - name: masters
+      count: 3
+      config:
+        action.destructive_requires_name: false
+        node.roles:
+          - master
+          - remote_cluster_client
+        xpack.ml.enabled: true
+
+        xpack.security.authc.realms.native.native1:
+          order: 0
+        xpack.security.authc.realms.file.file1:
+          order: 1
+      podTemplate:
+        spec:
+          tolerations:
+            - effect: NoSchedule
+              key: pool
+              operator: Equal
+              value: infra
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      elasticsearch.k8s.elastic.co/statefulset-name: elasticsearch-es-masters
+                  topologyKey: kubernetes.io/hostname
+          initContainers:
+            - name: sysctl
+              securityContext:
+                privileged: true
+                runAsUser: 0
+              command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+          containers:
+            - name: elasticsearch
+              resources:
+                limits:
+                  memory: 2Gi
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 20Gi
+            storageClassName: gp3-5k-250-ext4
+    - name: data
+      count: 3
+      config:
+        action.destructive_requires_name: false
+        node.roles:
+          - data
+          - data_warm
+          - data_cold
+          - ingest
+          - ml
+          - transform
+          - remote_cluster_client
+
+        xpack.security.authc.realms.native.native1:
+          order: 0
+        xpack.security.authc.realms.file.file1:
+          order: 1
+      podTemplate:
+        spec:
+          tolerations:
+            - key: pool
+              operator: Equal
+              value: infra
+              effect: NoSchedule
+          containers:
+            - name: elasticsearch
+              resources:
+                limits:
+                  memory: 6Gi
+              env:
+                - name: ES_JAVA_OPTS
+                  value: '-Xms4g -Xmx4g'
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      elasticsearch.k8s.elastic.co/statefulset-name: elasticsearch-es-data
+                  topologyKey: kubernetes.io/hostname
+          initContainers:
+            - name: sysctl
+              securityContext:
+                privileged: true
+                runAsUser: 0
+              command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 300Gi
+            storageClassName: gp3-5k-250-ext4

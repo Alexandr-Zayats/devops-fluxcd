@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wireguard-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp3-5k-250-ext4
+  resources:
+    requests:
+       storage: 2Gi

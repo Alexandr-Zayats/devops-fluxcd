@@ -1,0 +1,65 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: node-class.common
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  wait: true
+  prune: true
+  dependsOn:
+    - name: karpenter
+  force: true
+  sourceRef:
+    kind: GitRepository
+    name: base
+    namespace: flux-system
+  path: infra/nodeClass
+  healthChecks:
+    - apiVersion: karpenter.k8s.aws/v1
+      kind: EC2NodeClass
+      name: common
+  postBuild:
+    substitute:
+      className: common
+      amiSelector: bottlerocket@latest
+    substituteFrom:
+      - kind: ConfigMap
+        name: terraform-to-flux-bridge
+        optional: true
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: node-class.apps
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: karpenter
+  interval: 10m
+  retryInterval: 2m
+  prune: true
+  wait: true
+  timeout: 5m
+  force: true
+  sourceRef:
+    kind: GitRepository
+    name: base
+    namespace: flux-system
+  path: infra/nodeClass
+  healthChecks:
+    - apiVersion: karpenter.k8s.aws/v1
+      kind: EC2NodeClass
+      name: applications
+  postBuild:
+    substitute:
+      className: applications
+      amiSelector: al2023@latest
+    substituteFrom:
+      - kind: ConfigMap
+        name: terraform-to-flux-bridge
+        optional: true

@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vminsert-vmcluster-persistent-ext
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: vminsert.tools.int
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8480
+  selector:
+    app.kubernetes.io/instance: vmcluster-persistent
+    app.kubernetes.io/name: vminsert
+  type: LoadBalancer

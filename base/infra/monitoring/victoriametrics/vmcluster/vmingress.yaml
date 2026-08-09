@@ -1,0 +1,26 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vmselect-vmcluster-persistent
+  namespace: monitoring
+  labels:
+    owner: devops
+    stream: devops
+    env: ${env}
+    app: vmselect
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+spec:
+  rules:
+    - host: "vmselect.base.pmcorp.loc"
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: vmselect-vmcluster-persistent
+                port:
+                  number: 8481

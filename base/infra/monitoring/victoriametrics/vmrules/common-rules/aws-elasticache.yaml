@@ -1,0 +1,256 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: aws-elasticache-alerts
+  namespace: monitoring
+  labels:
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+    vmrules: aws-elasticache
+spec:
+  groups:
+
+  - name: aws-elasticache-cpu
+    rules:
+      - alert: ElastiCacheHighCPUUtilization
+        expr: |
+          max by (dimension_CacheClusterId, kubeClusterName) (
+            aws_elasticache_cpuutilization_average{
+              job="prometheus-yace",
+              dimension_CacheClusterId!=""
+            }
+          ) > 75
+        for: 5m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has high CPU utilization"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            CPU utilization is above 75% for more than 5 minutes.
+            Current value: {{ $value }}%.
+
+      - alert: ElastiCacheCriticalCPUUtilization
+        expr: |
+          max by (dimension_CacheClusterId, kubeClusterName) (
+            aws_elasticache_cpuutilization_average{
+              job="prometheus-yace",
+              dimension_CacheClusterId!=""
+            }
+          ) > 90
+        for: 3m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has critical CPU utilization"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            CPU utilization is above 90% for more than 3 minutes.
+            Immediate action required. Current value: {{ $value }}%.
+
+  - name: aws-elasticache-memory
+    rules:
+      - alert: ElastiCacheHighMemoryUsage
+        expr: |
+          max by (dimension_CacheClusterId, kubeClusterName) (
+            aws_elasticache_bytes_used_for_cache_average{
+              job="prometheus-yace",
+              dimension_CacheClusterId!=""
+            }
+          ) > 10737418240
+        for: 5m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has high memory usage"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            is using more than 10GB of cache memory for more than 5 minutes.
+            Current usage: {{ $value | humanize1024 }}.
+            Consider scaling up or optimizing cache usage if evictions are occurring.
+
+      - alert: ElastiCacheCriticalMemoryUsage
+        expr: |
+          max by (dimension_CacheClusterId, kubeClusterName) (
+            aws_elasticache_bytes_used_for_cache_average{
+              job="prometheus-yace",
+              dimension_CacheClusterId!=""
+            }
+          ) > 21474836480
+        for: 3m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has critical memory usage"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            is using more than 20GB of cache memory for more than 3 minutes.
+            Current usage: {{ $value | humanize1024 }}.
+            High risk of evictions and performance degradation. Immediate scaling required.
+
+  - name: aws-elasticache-connections
+    rules:
+      - alert: ElastiCacheHighConnectionCount
+        expr: |
+          max by (dimension_CacheClusterId, kubeClusterName) (
+            aws_elasticache_curr_connections_sum{
+              job="prometheus-yace",
+              dimension_CacheClusterId!=""
+            }
+          ) > 500
+        for: 5m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has high connection count"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            has more than 500 active connections for more than 5 minutes.
+            Current value: {{ $value }} connections.
+            Consider connection pooling or scaling.
+
+      - alert: ElastiCacheCriticalConnectionCount
+        expr: |
+          max by (dimension_CacheClusterId, kubeClusterName) (
+            aws_elasticache_curr_connections_sum{
+              job="prometheus-yace",
+              dimension_CacheClusterId!=""
+            }
+          ) > 1000
+        for: 3m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has critical connection count"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            has more than 1000 active connections for more than 3 minutes.
+            Current value: {{ $value }} connections.
+            Immediate scaling or connection optimization required.
+
+  - name: aws.elasticache.performance
+    rules:
+      - alert: ElastiCacheLowCacheHitRate
+        expr: |
+          (
+            sum by (dimension_CacheClusterId, kubeClusterName) (
+              rate(aws_elasticache_cache_hits_sum{
+                job="prometheus-yace",
+                dimension_CacheClusterId!=""
+              }[5m])
+            )
+            /
+            (
+              sum by (dimension_CacheClusterId, kubeClusterName) (
+                rate(aws_elasticache_cache_hits_sum{
+                  job="prometheus-yace",
+                  dimension_CacheClusterId!=""
+                }[5m])
+              ) +
+              sum by (dimension_CacheClusterId, kubeClusterName) (
+                rate(aws_elasticache_cache_misses_sum{
+                  job="prometheus-yace",
+                  dimension_CacheClusterId!=""
+                }[5m])
+              )
+            )
+          ) * 100 < 70
+        for: 10m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has low cache hit rate"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            cache hit rate is below 70% for more than 10 minutes.
+            Current hit rate: {{ $value }}%.
+            Consider reviewing cache key strategy or increasing cache size.
+
+      - alert: ElastiCacheCriticalLowCacheHitRate
+        expr: |
+          (
+            sum by (dimension_CacheClusterId, kubeClusterName) (
+              rate(aws_elasticache_cache_hits_sum{
+                job="prometheus-yace",
+                dimension_CacheClusterId!=""
+              }[5m])
+            )
+            /
+            (
+              sum by (dimension_CacheClusterId, kubeClusterName) (
+                rate(aws_elasticache_cache_hits_sum{
+                  job="prometheus-yace",
+                  dimension_CacheClusterId!=""
+                }[5m])
+              ) +
+              sum by (dimension_CacheClusterId, kubeClusterName) (
+                rate(aws_elasticache_cache_misses_sum{
+                  job="prometheus-yace",
+                  dimension_CacheClusterId!=""
+                }[5m])
+              )
+            )
+          ) * 100 < 50
+        for: 5m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has critically low cache hit rate"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            cache hit rate is below 50% for more than 5 minutes.
+            Current hit rate: {{ $value }}%.
+            Cache is not effective. Review cache strategy immediately.
+
+      - alert: ElastiCacheHighEvictionRate
+        expr: |
+          sum by (dimension_CacheClusterId, kubeClusterName) (
+            rate(aws_elasticache_evictions_sum{
+              job="prometheus-yace",
+              dimension_CacheClusterId!=""
+            }[5m])
+          ) > 100
+        for: 5m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has high eviction rate"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            is evicting more than 100 keys per second for more than 5 minutes.
+            Current eviction rate: {{ $value }} evictions/sec.
+            Cache is likely too small. Consider scaling up.
+
+      - alert: ElastiCacheCriticalHighEvictionRate
+        expr: |
+          sum by (dimension_CacheClusterId, kubeClusterName) (
+            rate(aws_elasticache_evictions_sum{
+              job="prometheus-yace",
+              dimension_CacheClusterId!=""
+            }[5m])
+          ) > 500
+        for: 3m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "ElastiCache cluster {{ $labels.dimension_CacheClusterId }} has critical eviction rate"
+          description: >
+            ElastiCache cluster {{ $labels.dimension_CacheClusterId }}
+            is evicting more than 500 keys per second for more than 3 minutes.
+            Current eviction rate: {{ $value }} evictions/sec.
+            Cache is severely undersized. Immediate scaling required.

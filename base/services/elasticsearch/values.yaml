@@ -1,0 +1,16 @@
+---
+global:
+  storageClass: gp2
+master:
+  persistence:
+    storageClass: gp2
+data:
+  persistence:
+    storageClass: gp2
+coordinating:
+  persistence:
+    storageClass: gp2
+ingest:
+  persistence:
+    storageClass: gp2
+plugins: ""

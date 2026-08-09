@@ -1,0 +1,28 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: prometheus-crds
+  namespace: monitoring
+spec:
+  releaseName: prometheus-crds
+  chart:
+    spec:
+      chart: prometheus-operator-crds
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+      # version: 8.7.2
+  interval: 5h
+  install:
+    remediation:
+      retries: 3
+    timeout: 10m
+  values:
+    nodeSelector:
+      arch: arm64
+    tolerations:
+      - key: pool
+        value: infra
+        effect: NoSchedule

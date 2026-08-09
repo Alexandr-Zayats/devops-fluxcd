@@ -1,0 +1,17 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: karpenter-crd
+  namespace: ${karpenter_namespace}
+spec:
+  releaseName: karpenter-crd
+  interval: 60m0s
+  uninstall:
+    disableHooks: true
+    keepHistory: false
+  targetNamespace: ${karpenter_namespace}
+  chartRef:
+    kind: OCIRepository
+    name: karpenter-crd
+    namespace: flux-system

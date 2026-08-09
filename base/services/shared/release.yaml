@@ -1,0 +1,80 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ${env}-${app}-shared
+spec:
+  interval: 30m
+  timeout: 5m
+  releaseName: shared
+  chart:
+    spec:
+      chart: app
+      sourceRef:
+        kind: HelmRepository
+        name: demo-platform
+        namespace: flux-system
+      version: 1.0.10
+  values:
+    env: ${env}
+    global:
+      tolerations:
+      - effect: NoSchedule
+        key: pool
+        operator: Equal
+        value: infra
+    deployment:
+      enabled: false
+
+    mysql:
+      enabled: false
+
+    rabbitmq:
+      enabled: false
+
+    memcached:
+      enabled: false
+
+    phpmyadmin:
+      enabled: false
+
+    postgresql:
+      enabled: true
+      fullnameOverride: postgresql
+      auth:
+        username: demo-platform
+        password: ${sharedPostgresUser}
+        database: demo-platform
+        postgresPassword: ${sharedPostgres}
+        replicationUsername: ${POSTGRES_REPL_USER}
+        replicationPassword: ${sharedPostgresRepl}
+      primary:
+        resources:
+          requests:
+            memory: 1Gi
+          limits:
+            memory: 1Gi
+        extraEnvVars:
+          - name: PG_EXTRA_PASSWORD
+            value: ${sharedPostgresUser}
+        extraVolumes:
+          - name: pg-extra
+            configMap:
+              name: shared-postgresql-extra
+        extraVolumeMounts:
+          - name: pg-extra
+            mountPath: /opt/pg-extra
+            readOnly: true
+      extraDbs:
+        - name: junction
+          users:
+            - junction
+        - name: atlas
+          users:
+            - atlas
+
+    redis:
+      enabled: true
+      fullnameOverride: redis
+      auth:
+        password: ${sharedRedis}

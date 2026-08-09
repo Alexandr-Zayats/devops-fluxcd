@@ -1,0 +1,45 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: eck
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  timeout: 30m
+  targetNamespace: ${namespace}
+  install:
+    createNamespace: true
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: eck-stack
+      sourceRef:
+        kind: HelmRepository
+        name: demo-platform
+        namespace: flux-system
+      version: 0.1.9
+  values:
+    elasticsearch:
+      enabled: true
+      userList:
+        domain: example-org.ca
+        roles: {}
+    kibana:
+      enabled: true
+      name: ${kibana_name}
+    oauth2Proxy:
+      enabled: true
+      name: ${kibana_name}-oauth2-proxy
+      externalSecretRemoteKey: ${kibana_aws_secret_path}
+      redirectUrl: https://${kibana_name}.${private_domain}/oauth2/callback
+      cookieDomain: .${private_domain}
+      upstreamService: http://${kibana_name}-kb-http:5601
+    ingress:
+      enabled: true
+      name: ${kibana_name}
+      host: ${kibana_name}.${private_domain}
+      annotations:
+        alb.ingress.kubernetes.io/certificate-arn: ${tools_cert_arn}

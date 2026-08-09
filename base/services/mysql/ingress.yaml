@@ -1,0 +1,26 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mysql
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    kubernetes.io/ingress.class: private-shared
+spec:
+  tls:
+    - hosts:
+        - '*.${int_zone_name}'
+      secretName: ssl-tls-cert-cms
+  ingressClassName: private-shared
+  rules:
+    - host: db.${int_zone_name}
+      http:
+        paths:
+          - path: / #?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: phpmyadmin
+                port:
+                  name: http

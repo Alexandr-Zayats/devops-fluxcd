@@ -1,0 +1,5 @@
+---
+resources:
+  # - efs.yaml
+  - gp3-5k-250-ext4.yaml
+  - ebs-sc-io1.yaml

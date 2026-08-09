@@ -1,0 +1,19 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kubernetes-secret-generator
+spec:
+  chart:
+    spec:
+      chart: kubernetes-secret-generator
+      sourceRef:
+        kind: HelmRepository
+        name: mittwald
+        namespace: flux-system
+  releaseName: kubernetes-secret-generator
+  interval: 60m
+  valuesFrom:
+    - kind: ConfigMap
+      name: secret-generator-values
+      valuesKey: values.yaml

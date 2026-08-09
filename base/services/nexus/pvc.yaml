@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    meta.helm.sh/release-name: nexus-repo
+    meta.helm.sh/release-namespace: nexus
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: ebs.csi.aws.com
+    volume.kubernetes.io/selected-node: ip-10-10-17-198.us-east-1.compute.internal
+    volume.kubernetes.io/storage-provisioner: ebs.csi.aws.com
+  labels:
+    app.kubernetes.io/instance: nexus-repo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nexus-repository-manager
+    app.kubernetes.io/version: 3.64.0
+    helm.sh/chart: nexus-repository-manager-64.2.0
+    helm.toolkit.fluxcd.io/name: nexus
+    helm.toolkit.fluxcd.io/namespace: nexus
+  name: nexus-repo-nexus-repository-manager-data-custom
+  namespace: nexus
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: gp3-5k-250-ext4
+  volumeMode: Filesystem
+  volumeName: nexus-migrated-pv

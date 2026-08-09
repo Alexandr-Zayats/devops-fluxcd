@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-redis-exporter-values
+  namespace: monitoring
+data:
+  values.yaml: |
+    serviceMonitor:
+      enabled: false
+
+    podLabels:
+      app.kubernetes.io/name: prometheus-redis-exporter
+

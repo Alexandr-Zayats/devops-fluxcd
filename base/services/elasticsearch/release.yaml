@@ -1,0 +1,54 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ${env}-${app}-elasticsearch
+  namespace: flux-system
+spec:
+  interval: 10m
+  releaseName: elasticsearch
+  chart:
+    spec:
+      chart: elasticsearch
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami-oci
+        namespace: flux-system
+      version: 19.21.2 # 22.1.4
+  valuesFrom:
+    - kind: ConfigMap
+      name: elasticsearch-values
+      valuesKey: values.yaml
+  values:
+    master:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: pool
+          value: infra
+          effect: NoSchedule
+    data:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: pool
+          value: infra
+          effect: NoSchedule
+    ingest:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: pool
+          value: infra
+          effect: NoSchedule
+    coordinating:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: pool
+          value: infra
+          effect: NoSchedule
+    image:
+      registry: docker.io
+      repository: bitnami/elasticsearch
+      tag: 8.18.0

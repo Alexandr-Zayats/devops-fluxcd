@@ -1,0 +1,45 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespaces.yaml
+  - dockerHubAuth.yaml
+  - aws-efs-csi-driver.yaml
+  - ../infra/storageclasses
+  - ../infra/acm-cert
+  - flux-helmrelease-cluster-role.yaml
+  - alb-controller.yaml
+  - karpenter-crd.yaml
+  - karpenter.yaml
+  - nodeClass.yaml
+  - nodePool.yaml
+  - ack-acm-controller.yaml
+  - prometheus.yaml
+  - flux2.yaml
+  - external-secrets.yaml
+  - clusterSecretStore.yaml
+  - kyverno.yaml
+  - external-dns.yaml
+  # - traefik.yaml
+  - secret-generator.yaml
+  - statsd.yaml
+  # - ingress-controller.yaml
+  - reloader.yaml
+
+  # - ../infra/cert-manager
+
+  - metrics-server.yaml
+
+  # - installations/kubecost
+  # - kyverno-sync.yaml
+  # - aws-ebs-csi-driver.yaml
+  # - sealed-secrets.yaml
+  # - ingress-class.yaml
+  # - slackNotification.yaml
+  # - gitlabReceiver.yaml
+  # - dockerHubAuth.yaml
+  #- ../services/internal-certs/cert-manager
+  #- ../services/internal-certs/aws-privateca-issuer
+  #- ../services/internal-certs/ClusterIssuer
+  # - cert-manager-policy.yaml
+  # - cert-manager.crds.yaml

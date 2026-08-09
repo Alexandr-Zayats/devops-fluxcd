@@ -1,0 +1,61 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlertmanager
+metadata:
+  name: vmcluster-persistent
+  namespace: monitoring
+spec:
+  templates:
+    - name: alertmanager-slack-templates
+      key: alertmanager-slack-templates.tmpl
+  replicaCount: 1
+  image:
+    repository: prom/alertmanager
+    tag: v0.31.0
+    pullPolicy: IfNotPresent
+  configReloaderImage: victoriametrics/operator:config-reloader-v0.69.0
+  nodeSelector:
+    kubernetes.io/arch: arm64
+  tolerations:
+    - key: pool
+      value: monitoring
+      operator: Equal
+      effect: NoSchedule
+  logFormat: json
+  logLevel: info
+  podMetadata:
+    labels:
+      owner: devops
+      stream: devops
+      product: observability
+      app: vmalertmanager
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - vmalertmanager
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+  extraArgs:
+    cluster.listen-address: "[$(POD_IP)]:9094"
+    cluster.peer: "vmalertmanager-vmcluster-persistent-0.vmalertmanager-vmcluster-persistent.monitoring.svc.cluster.local:9094"
+  disableNamespaceMatcher: true
+  selectAllByDefault: false
+  configNamespaceSelector: {}
+  configSelector:
+    matchExpressions:
+      - key: vmalertmanagerconfig
+        operator: Exists
+  configSecret: vmalertmanager-config

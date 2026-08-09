@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmagent-relabel
+data:
+  global-relabel.yaml: |
+    - source_labels: [__meta_kubernetes_pod_label_app]
+      regex: '(.+)'
+      target_label: service
+    - source_labels: [__meta_kubernetes_pod_name]
+      regex: '^([^-]+).*'
+      replacement: '$1'
+      target_label: service
+    - source_labels: [account_id]
+      regex: "aws-000000000000"
+      target_label: "account_name"
+      replacement: "example-org-tools"
+    - source_labels: [account_id]
+      regex: "aws-888577054128"
+      target_label: "account_name"
+      replacement: "example-org-dev"
+    - source_labels: [account_id]
+      regex: "aws-585768168634"
+      target_label: "account_name"
+      replacement: "example-org-stg"
+    - action: keep
+      source_labels: [account_name]

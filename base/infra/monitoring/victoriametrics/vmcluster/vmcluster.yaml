@@ -1,0 +1,154 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMCluster
+metadata:
+  name: vmcluster-persistent
+  namespace: monitoring
+spec:
+  clusterVersion: v1.140.0-cluster
+  imagePullSecrets:
+    - name: deploy-secret
+  retentionPeriod: "6"
+  vmstorage:
+    priorityClassName: system-cluster-critical
+    logFormat: json
+    logLevel: INFO
+    extraArgs:
+      search.maxUniqueTimeseries: "200000000"
+      dedup.minScrapeInterval: 30s
+    replicaCount: 3
+    image:
+      repository: victoriametrics/vmstorage
+      tag: v1.140.0-cluster
+      pullPolicy: IfNotPresent
+    storageDataPath: "/vm-data"
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          resources:
+            requests:
+              storage: 300Gi
+    resources:
+      requests:
+        cpu: 2000m
+        memory: 6Gi
+      limits:
+        cpu: 2000m
+        memory: 6Gi
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - vmstorage
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+    podMetadata:
+      labels:
+        owner: devops
+        stream: devops
+        env: tools
+        app: vmstorage
+        product: observability
+        temporary: "false"
+        deleteAfter: "false"
+  vmselect:
+    priorityClassName: system-cluster-critical
+    logFormat: json
+    logLevel: INFO
+    extraArgs:
+      search.maxUniqueTimeseries: "200000000"
+      search.maxSamplesPerQuery: "100000000"
+      search.maxQueryDuration: 240s
+      search.maxConcurrentRequests: "64"
+      search.logSlowQueryDuration: 10s
+      search.maxQueryLen: "65536"
+      memory.allowedPercent: "60"
+      dedup.minScrapeInterval: 30s
+    replicaCount: 3
+    image:
+      repository: victoriametrics/vmselect
+      tag: v1.140.0-cluster
+      pullPolicy: IfNotPresent
+    cacheMountPath: "/select-cache"
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          resources:
+            requests:
+              storage: 50Gi
+    resources:
+      requests:
+        cpu: 4000m
+        memory: 4Gi
+      limits:
+        cpu: 4000m
+        memory: 4Gi
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - vmselect
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+    podMetadata:
+      labels:
+        owner: devops
+        stream: devops
+        env: tools
+        app: vmselect
+        product: observability
+        temporary: "false"
+        deleteAfter: "false"
+  vminsert:
+    priorityClassName: system-cluster-critical
+    replicaCount: 3
+    logFormat: json
+    logLevel: INFO
+    extraArgs:
+      replicationFactor: "2"
+      maxLabelsPerTimeseries: "50"
+      sortLabels: "true"
+    image:
+      repository: victoriametrics/vminsert
+      tag: v1.140.0-cluster
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 1500m
+        memory: 1Gi
+      limits:
+        cpu: 1500m
+        memory: 1Gi
+    podMetadata:
+      labels:
+        owner: devops
+        stream: devops
+        env: tools
+        app: vminsert
+        product: observability
+        temporary: "false"
+        deleteAfter: "false"
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - vminsert
+              topologyKey: kubernetes.io/hostname
+            weight: 100

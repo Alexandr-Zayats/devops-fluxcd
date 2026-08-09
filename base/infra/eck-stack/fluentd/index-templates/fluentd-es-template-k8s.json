@@ -1,0 +1,15 @@
+{
+  "index_patterns": ["k8s-<<TAG>>-*"],
+  "template": {
+    "settings": {
+      "index": {
+        "lifecycle": {
+          "name": "k8s-policy",
+          "rollover_alias": "k8s-<<TAG>>"
+        },
+        "number_of_shards": "<<shard>>",
+        "number_of_replicas": "<<replica>>"
+      }
+    }
+  }
+}

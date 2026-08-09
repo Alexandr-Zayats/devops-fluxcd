@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: allure-config-map
+data:
+  CHECK_RESULTS_EVERY_SECONDS: "10"
+  KEEP_HISTORY: "1"
+  KEEP_HISTORY_LATEST: "60"
+  URL_PREFIX: "/allure-api"
+  TLS: "1"
+  SECURITY_ENABLED: "1"
+  MAKE_VIEWER_ENDPOINTS_PUBLIC: "0"

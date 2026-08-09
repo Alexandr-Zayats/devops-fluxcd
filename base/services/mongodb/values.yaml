@@ -1,0 +1,15 @@
+---
+global:
+  security:
+    allowInsecureImages: true
+image:
+  registry: docker.io
+  repository: dlavrenuek/bitnami-mongodb-arm
+  tag: 8.0.4
+auth:
+  rootPassword: ${MONGODB_PASSWORD}
+  usernames: ["${DB_LIST}"]
+  passwords: ["${DB_LIST}"]
+  databases: ["${DB_LIST}"]
+persistence:
+  storageClass: gp2

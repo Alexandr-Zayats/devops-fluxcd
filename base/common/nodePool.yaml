@@ -1,0 +1,70 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: node-pool.infra
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  wait: true
+  prune: true
+  dependsOn:
+    - name: node-class.common
+    - name: karpenter
+  force: true
+  sourceRef:
+    kind: GitRepository
+    name: base
+    namespace: flux-system
+  path: infra/nodePool
+  healthChecks:
+    - apiVersion: karpenter.sh/v1
+      kind: NodePool
+      name: infra
+      namespace: flux-system
+  postBuild:
+    substitute:
+      poolName: infra
+      classRef: common
+      limits_cpu: '100'
+    substituteFrom:
+      - kind: ConfigMap
+        name: terraform-to-flux-bridge
+        optional: true
+  patches:
+    - target:
+        group: karpenter.sh
+        kind: NodePool
+      patch: |
+        - op: replace
+          path: /spec/template/metadata/labels
+          value:
+            arch: arm64
+        - op: replace
+          path: /spec/template/spec/requirements/0/values
+          value:
+            # - c6g.xlarge
+            # - c8g.2xlarge
+            - m8g.xlarge
+            # - m8gd.2xlarge
+            # - m8g.4xlarge
+            # - m8gd.4xlarge
+            # - c8g.4xlarge
+            # - c7g.xlarge
+        - op : replace
+          path: /spec/template/spec/requirements/1/values
+          value:
+            - spot
+            - on-demand
+        - op: replace
+          path: /spec/template/spec/requirements/2/values
+          value:
+            - arm64
+        - op: replace
+          path: /spec/template/spec/taints
+          value:
+            - effect: NoSchedule
+              key: pool
+              value: infra

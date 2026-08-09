@@ -1,0 +1,42 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux2
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 10m
+  wait: true
+  prune: true
+  dependsOn:
+    - name: alb-controller
+    - name: karpenter
+  targetNamespace: flux-system
+  serviceAccountName: kustomize-controller
+  sourceRef:
+    kind: GitRepository
+    name: base
+  path: services/fluxcd
+  force: true
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: flux2
+      namespace: flux-system
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: image-automation-controller
+      namespace: flux-system
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: image-reflector-controller
+      namespace: flux-system
+  postBuild:
+    substitute:
+      tenance: main
+    substituteFrom:
+      - kind: ConfigMap
+        name: terraform-to-flux-bridge
+        optional: true

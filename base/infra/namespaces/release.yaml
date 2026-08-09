@@ -1,0 +1,34 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: namespace.${purpose}
+  namespace: flux-system
+spec:
+  interval: 1m
+  timeout: 2m
+  releaseName: namespace.${purpose}
+  install:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: 3
+      strategy: rollback
+      remediateLastFailure: true
+    cleanupOnFail: true
+    force: false
+  uninstall:
+    keepHistory: false
+  chart:
+    spec:
+      chart: namespaces
+      sourceRef:
+        kind: HelmRepository
+        name: demo-platform
+        namespace: flux-system
+      version: 0.2.5
+  values:
+    namespaces: "${namespaces}"
+

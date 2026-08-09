@@ -1,0 +1,37 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ack.yaml
+  - aws-ebs-csi-driver.yaml
+  - aws-fsx-csi-driver.yaml
+  - awspca.yaml
+  - bitnami.yaml
+  - eks-charts.yaml
+  - elastic.yaml
+  - external-dns.yaml
+  - external-secrets.yaml
+  - fluent.yaml
+  - fluxcd.yaml
+  - git-repository.yaml
+  - gitlab.yaml
+  - grafana.yaml
+  - helm-repository.yaml
+  - ingress-nginx.yaml
+  - internal-gitlab.yaml
+  - kyverno.yaml
+  - metrics-server.yaml
+  - nexus.yaml
+  - oci-repository.yaml
+  - openvpn.yaml
+  - prometheus-comunity.yaml
+  - pyroscope.yaml
+  - secret-generator.yaml
+  - sentry.yaml
+  - sonarqube.yaml
+  - stable.yaml
+  - statsd.yaml
+  - traefik.yaml
+  - victoriametrics.yaml
+  - wazuh.yaml
+  # - WireGuard.yaml

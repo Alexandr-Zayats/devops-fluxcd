@@ -1,0 +1,18 @@
+---
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Receiver
+metadata:
+  name: gitlab-receiver
+  namespace: flux-system
+spec:
+  type: gitlab
+  events:
+    - apply
+    - health-check
+    - error
+  resources:
+    - kind: Kustomization
+      name: nuxt
+      namespace: frontend
+  secretRef:
+    name: gitlab

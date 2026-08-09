@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aws-node
+  namespace: kube-system
+  labels:
+    app: aws-node
+    jobLabel: aws-node
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+spec:
+  clusterIP: None
+  ports:
+    - name: http-metrics
+      port: 61678
+      protocol: TCP
+      targetPort: 61678
+  selector:
+    k8s-app: aws-node
+  type: ClusterIP
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: aws-node
+  namespace: monitoring
+  labels:
+    app: aws-node
+    owner: devops
+    stream: devops
+    env: ${env}
+    vmservicescrape: aws-node
+    product: observability
+spec:
+  selector:
+    matchLabels:
+      app: aws-node
+      jobLabel: aws-node
+  namespaceSelector:
+    matchNames:
+      - "kube-system"
+  endpoints:
+    - port: http-metrics
+      scheme: http
+  jobLabel: jobLabel2

@@ -1,0 +1,91 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: vmcluster-persistent
+spec:
+  selectAllByDefault: true
+  scrapeInterval: 30s
+  externalLabels:
+    cluster: ${eks_cluster_name} # -${eks_cluster_suffix}
+    kubeClusterName: ${eks_cluster_name} # -${eks_cluster_suffix}
+    # cluster: ${eks_cluster_name}-${eks_cluster_suffix}
+    account_id: "\"${account_id}\""
+  replicaCount: 1
+  shardCount: 1
+  image:
+    repository: victoriametrics/vmagent
+    tag: v1.140.0
+    pullPolicy: IfNotPresent
+  configReloaderImage: victoriametrics/operator:config-reloader-v0.69.0
+  #  statefulMode: true
+  #  statefulStorage:
+  #    volumeClaimTemplate:
+  #      spec:
+  #        resources:
+  #          requests:
+  #            storage: 3Gi  # maxDiskUsagePerURL + small buffer
+  logFormat: json
+  logLevel: INFO
+  relabelConfig:
+    name: vmagent-relabel
+    key: global-relabel.yaml
+  remoteWrite:
+    # - url: http://vminsert.${int_zone_name}/insert/0/prometheus/api/v1/write
+    # - url: http://k8s-monitori-vminsert-d29dfa0ff2-fde1f86c5ed3a012.elb.us-east-1.amazonaws.com/insert/0/prometheus/api/v1/write
+    - url: http://vminsert.tools.int/insert/0/prometheus
+  remoteWriteSettings:
+    queues: 125
+    maxBlockSize: 33554432
+  extraArgs:
+    remoteWrite.maxDiskUsagePerURL: 4GB
+    promscrape.maxScrapeSize: 128MB
+    promscrape.noStaleMarkers: "true"
+    promscrape.kubernetesSDCheckInterval: 60s
+    promscrape.streamParse: "true"
+    remoteWrite.forceVMProto: "true"
+    remoteWrite.vmProtoCompressLevel: "22"
+    remoteWrite.queues: "64"
+  resources:
+    requests:
+      cpu: 2
+      memory: 2Gi
+    limits:
+      memory: 4Gi
+  nodeSelector:
+    kubernetes.io/arch: arm64
+  tolerations:
+    - effect: NoSchedule
+      key: pool
+      operator: Equal
+      value: monitoring
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              topologyKey: kubernetes.io/hostname
+              matchLabels:
+                app: vmagent
+                # shard-num: '%SHARD_NUM%'
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+  podMetadata:
+    labels:
+      stream: devops
+      env: ${env}
+      app: vmagent
+      product: observability
+  serviceScrapeRelabelTemplate:
+    - sourceLabels: [__meta_kubernetes_pod_label_product]
+      targetLabel: product
+    - sourceLabels: [__meta_kubernetes_pod_label_owner]
+      targetLabel: owner
+    - sourceLabels: [__meta_kubernetes_pod_label_stream]
+      targetLabel: stream
+    - sourceLabels: [__meta_kubernetes_pod_label_team]
+      targetLabel: team
+    - sourceLabels: [__meta_kubernetes_pod_label_app]
+      targetLabel: app
+    - sourceLabels: [__meta_kubernetes_pod_label_env]
+      targetLabel: env

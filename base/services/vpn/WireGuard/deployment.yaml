@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: wireguard
+  name: wireguard
+  labels:
+    app: wireguard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wireguard
+  template:
+    metadata:
+      labels:
+        app: wireguard
+    spec:
+      tolerations:
+        - effect: NoSchedule
+          key: pool
+          operator: Equal
+          value: infra
+      containers:
+      - name: wireguard
+        image: linuxserver/wireguard:latest
+        env:
+        - name: PUID
+          value: "1000"
+        - name: GUID
+          value: "1000"
+        - name: TZ
+          value: "Asia/Jerusalem"
+        - name: SERVERURL
+          value: "some-dns.duckdns.org"
+        - name: SERVERPORT
+          value: "51820"
+        - name: PEERS
+          value: "1"
+        - name: PEERDNS
+          value: "auto"
+        - name: INTERNAL_SUBNET
+          value: "10.13.13.0"
+        - name: ALLOWEDIPS
+          value: "0.0.0.0/0"
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN", "SYS_MODULE"]
+        ports:
+          - name: udp-port
+            containerPort: 51820
+            protocol: UDP
+        volumeMounts:
+            - name: wireguard-config
+              mountPath: /config      
+            - name: lib-modules
+              mountPath: /lib/modules
+      volumes:
+        - name: wireguard-config
+          persistentVolumeClaim:
+              claimName: wireguard-pv-claim
+        #- name: wireguard-config
+        #  hostPath:
+        #    path: /home/rke/stmp/rke-persistent-volumes/wireguard-pv_2
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules

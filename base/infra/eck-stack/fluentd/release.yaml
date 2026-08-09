@@ -1,0 +1,145 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: fluentd
+spec:
+  releaseName: fluentd
+  chart:
+    spec:
+      chart: fluentd
+      sourceRef:
+        kind: HelmRepository
+        name: fluent
+        namespace: flux-system
+      version: 0.5.3
+  interval: 1h0m0s
+  install:
+    remediation:
+      retries: 5
+  values:
+    service:
+      enabled: false
+      type: ClusterIP
+      ports: []
+      annotations: {}
+    metrics:
+      serviceMonitor:
+        enabled: true
+        metricRelabelings:
+          - sourceLabels: [__name__]
+            separator: ;
+            regex: ^fluentd_output_status_buffer_(oldest|newest)_.+
+            replacement: $1
+            action: drop
+        relabelings:
+          - sourceLabels: [__meta_kubernetes_pod_node_name]
+            separator: ;
+            regex: ^(.*)$
+            targetLabel: nodename
+            replacement: $1
+            action: replace
+        jobLabel: fluentd
+        scrapeInterval: 30s
+        scrapeTimeout: 5s
+        honorLabels: true
+      prometheusRule:
+        enabled: true
+        additionalLabels: {}
+        namespace: ""
+        rules:
+          - alert: FluentdDown
+            expr: up{job="fluentd"} == 0
+            for: 5m
+            labels:
+              context: fluentd
+              severity: warning
+            annotations:
+              summary: "Fluentd Down"
+              description: "{{ $labels.pod }} on {{ $labels.nodename }} is down"
+          - alert: FluentdScrapeMissing
+            expr: absent(up{job="fluentd"} == 1)
+            for: 15m
+            labels:
+              context: fluentd
+              severity: warning
+            annotations:
+              summary: "Fluentd Scrape Missing"
+              description: "Fluentd instance has disappeared from Prometheus target discovery"
+    tolerations:
+      - operator: Exists
+    #serviceAccount:
+    #  create: 'true'
+    #  annotations: {}
+    #  name: 'fluentd'
+    #rbac:
+    #  create: 'true'
+    #podSecurityPolicy:
+    #  enabled: 'false'
+    # livenessProbe:
+    #   httpGet:
+    #     path: '/'
+    #     port: 'health'
+    # readinessProbe:
+    #   httpGet:
+    #     path: '/'
+    #     port: 'health'
+    kind: DaemonSet
+    variant: elasticsearch8
+    nameOverride: fluentd
+    fullnameOverride: fluentd
+    image:
+      #repository: 000000000000.dkr.ecr.us-east-1.amazonaws.com/services/fluentd
+      #pullPolicy: IfNotPresent
+      #tag: 1.0.149
+      pullPolicy: IfNotPresent
+      repository: fluent/fluentd-kubernetes-daemonset
+      tag: v1.18-debian-elasticsearch8-1
+
+    env:
+      - name: K8S_NODE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.kubelet_node_name
+    #envFrom:
+    #  - secretRef:
+    #      name: elasticsearch-es-elastic-user
+    #      valuesKey: elastic
+    #      targetPath: elastic
+    configMapConfigs:
+      - fluentd-prometheus-conf
+      - common
+
+    volumes:
+      - name: etcfluentd-templates
+        configMap:
+          name: index-templates
+          defaultMode: 0777
+
+    volumeMounts:
+      - name: etcfluentd-templates
+        mountPath: /etc/fluent/templates
+
+    annotations:
+      configmap.reloader.stakater.com/reload: fluentd-config-fluentd
+
+    plugins:
+      - elasticsearch-xpack
+      - fluent-plugin-elasticsearch -v '~> 5.1.1'
+      - fluent-plugin-kubernetes_metadata_filter
+      - fluent-plugin-rewrite-tag-filter
+
+    fileConfigs:
+      00_system.conf: |-
+        #configure the logging level to error
+        <system>
+          log_level "#{ENV['FLUENT_LOG_LEVEL'] || 'error'}"
+        </system>
+
+      01_sources.conf: |-
+        @include /etc/fluent/common.d/.source_forward.conf
+
+      02_filters.conf: ''
+      03_dispatch.conf: ''
+      04_outputs.conf: ''
+      05_outputs.conf: ''

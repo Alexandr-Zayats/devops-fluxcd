@@ -1,0 +1,46 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: prometheus-exporters
+  namespace: monitoring
+spec:
+  releaseName: prometheus-exporters
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+      # version: 8.7.2
+  interval: 5h
+  install:
+    remediation:
+      retries: 3
+    timeout: 10m
+  uninstall:
+    disableHooks: true
+    keepHistory: false
+  values:
+    crds:
+      upgradeJob:
+        enabled: false
+        tolerations:
+          - key: pool
+            value: infra
+            effect: NoSchedule
+    alertmanager:
+      enabled: false
+    grafana:
+      enabled: false
+    prometheusOperator:
+      enabled: false
+    prometheus:
+      enabled: false
+    kube-state-metrics:
+      tolerations:
+        - effect: NoSchedule
+          key: pool
+          operator: Equal
+          value: infra

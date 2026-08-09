@@ -1,0 +1,19 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-cms
+provisioner: efs.csi.aws.com
+parameters:
+  directoryPerms: '755'
+  ensureUniqueDirectory: 'false'
+  fileSystemId: ${efs_id}
+  gidRangeEnd: '2000'
+  gidRangeStart: '1000'
+  provisioningMode: efs-ap
+  # subPathPattern: ${.PVC.namespace}/${.PVC.name}
+reclaimPolicy: Retain
+#mountOptions:
+#  - tls
+allowVolumeExpansion: true
+volumeBindingMode: Immediate

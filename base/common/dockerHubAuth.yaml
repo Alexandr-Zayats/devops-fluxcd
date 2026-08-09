@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: regcred
+  namespace: flux-system
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: ewogICJhdXRocyI6IHsKICAgICJyZWdpc3RyeS0xLmRvY2tlci5pbyI6IHsKICAgICAgInVzZXJuYW1lIjogImJldGh1bmRlciIsCiAgICAgICJwYXNzd29yZCI6ICJkY2tyX3BhdF9lYjEzeDNxRUwxOFo0ZWRqLW5kWU81b09SdlUiLAogICAgICAiYXV0aCI6ICJZbVYwYUhWdVpHVnlPbVJqYTNKZmNHRjBYMlZpTVRONE0zRkZUREU0V2pSbFpHb3RibVJaVHpWdlQxSjJWUT09IgogICAgfQogIH0KfQoK

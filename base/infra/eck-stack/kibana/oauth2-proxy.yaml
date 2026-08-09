@@ -1,0 +1,118 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana-oauth2-proxy
+  namespace: eck
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana-oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: kibana-oauth2-proxy
+    spec:
+      tolerations:
+        - key: pool
+          operator: Equal
+          value: infra
+          effect: NoSchedule
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+          ports:
+            - containerPort: 4180
+              name: http
+
+          args:
+            - --alpha-config=/etc/oauth2-proxy/alpha-config.yaml
+            - --email-domain=example-org.ca
+            - --redirect-url=https://kibana.${private_domain}/oauth2/callback
+            - --reverse-proxy=true
+            - --skip-provider-button=false
+            - --whitelist-domain=.${private_domain}
+            - --cookie-domain=.${private_domain}
+            - --cookie-secure=true
+            - --cookie-httponly=true
+            - --cookie-samesite=lax
+            - --cookie-expire=168h
+            - --cookie-refresh=1h
+
+          env:
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kibana-oauth-secret
+                  key: cookie_secret
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: kibana-oauth-secret
+                  key: client_id
+            - name: OAUTH2_PROXY_UPSTREAM_BASIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-es-elastic-user
+                  key: elastic
+
+          volumeMounts:
+            - name: oauth2-proxy-alpha-config
+              mountPath: /etc/oauth2-proxy/alpha-config.yaml
+              subPath: alpha-config.yaml
+            - name: oauth2-proxy-provider-secret
+              mountPath: /etc/oauth2-proxy/secret
+              readOnly: true
+
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi
+              cpu: 100m
+
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 15
+            periodSeconds: 5
+
+      volumes:
+        - name: oauth2-proxy-alpha-config
+          configMap:
+            name: kibana-oauth2-proxy-alpha
+            items:
+              - key: alpha-config.yaml
+                path: alpha-config.yaml
+        - name: oauth2-proxy-provider-secret
+          secret:
+            secretName: kibana-oauth-secret
+            items:
+              - key: client_secret
+                path: client_secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-oauth2-proxy
+  namespace: eck
+spec:
+  type: ClusterIP
+  selector:
+    app: kibana-oauth2-proxy
+  ports:
+    - port: 4180
+      targetPort: 4180
+      protocol: TCP
+      name: http

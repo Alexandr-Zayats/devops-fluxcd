@@ -1,0 +1,6 @@
+env: ${env}
+image:
+  repository: 000000000000.dkr.ecr.us-east-1.amazonaws.com/tools/statsd
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart version.
+  tag: 1.0.199

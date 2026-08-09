@@ -1,0 +1,17 @@
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: main-roles
+  namespace: elastic-stack
+stringData:
+  roles.yml: |-
+    click_admins:
+      run_as: [ 'clicks_watcher_1' ]
+      cluster: [ 'monitor' ]
+      indices:
+        - names: [ '**' ]
+          privileges: [ 'read' ]
+          field_security:
+            grant: ['category', '@timestamp', 'message', 'logs' ]
+          query: {"match": {"category": "click"}}

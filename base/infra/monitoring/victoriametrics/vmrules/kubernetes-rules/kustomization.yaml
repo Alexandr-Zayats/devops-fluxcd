@@ -1,0 +1,15 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - k8s-general.yaml
+  - kube-state-metrics.yaml
+  - kubernetes-apps.yaml
+  - kubernetes-resources.yaml
+  - kubernetes-storage.yaml
+  - kubernetes-system-apiserver.yaml
+  - kubernetes-system-kubelet.yaml
+  - kubernetes-system.yaml
+  - node-exporter.yaml
+  - node.yaml
+  - prometheus-general.yaml

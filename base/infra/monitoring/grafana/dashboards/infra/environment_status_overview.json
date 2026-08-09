@@ -1,0 +1,752 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 23,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "count(label_replace(\n  (\n    2 * (\n      1 -\n      min by (env) (\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                pod=~\"heimdall-.*|iris-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n            )\n          )\n        )\n      )\n    )\n  )\n  +\n  on(env)\n  (\n    min by (env) (\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-api\",\n              pod=~\"heimdall-.*|iris-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n              pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n              pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n          )\n        )\n      )\n    )\n    *\n    (\n      (\n        max by (env) (\n          label_replace(\n            kube_job_status_failed{\n              namespace=~\"(kan-[0-9]+|dev|test)-(api|cms|frontend)\",\n              job_name=~\".*backup.*|.*dump.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-(api|cms|frontend)\"\n          )\n        )\n      )\n      or on(env)\n      (\n        0 *\n        min by (env) (\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                  pod=~\"heimdall-.*|iris-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                  pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                  pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n              )\n            )\n          )\n        )\n      )\n    )\n  ),\n  \"service\", \"STATUS\", \"\", \"\"\n))",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Environments",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "count((label_replace(\n  (\n    2 * (\n      1 -\n      min by (env) (\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                pod=~\"heimdall-.*|iris-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n            )\n          )\n        )\n      )\n    )\n  )\n  +\n  on(env)\n  (\n    min by (env) (\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-api\",\n              pod=~\"heimdall-.*|iris-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n              pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n              pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n          )\n        )\n      )\n    )\n    *\n    (\n      (\n        max by (env) (\n          label_replace(\n            kube_job_status_failed{\n              namespace=~\"(kan-[0-9]+|dev|test)-(api|cms|frontend)\",\n              job_name=~\".*backup.*|.*dump.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-(api|cms|frontend)\"\n          )\n        )\n      )\n      or on(env)\n      (\n        0 *\n        min by (env) (\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                  pod=~\"heimdall-.*|iris-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                  pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                  pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n              )\n            )\n          )\n        )\n      )\n    )\n  ),\n  \"service\", \"STATUS\", \"\", \"\"\n)) == 0) or vector(0)",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "OK",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-yellow",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 10,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "count((label_replace(\n  (\n    2 * (\n      1 -\n      min by (env) (\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                pod=~\"heimdall-.*|iris-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n            )\n          )\n        )\n      )\n    )\n  )\n  +\n  on(env)\n  (\n    min by (env) (\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-api\",\n              pod=~\"heimdall-.*|iris-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n              pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n              pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n          )\n        )\n      )\n    )\n    *\n    (\n      (\n        max by (env) (\n          label_replace(\n            kube_job_status_failed{\n              namespace=~\"(kan-[0-9]+|dev|test)-(api|cms|frontend)\",\n              job_name=~\".*backup.*|.*dump.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-(api|cms|frontend)\"\n          )\n        )\n      )\n      or on(env)\n      (\n        0 *\n        min by (env) (\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                  pod=~\"heimdall-.*|iris-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                  pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                  pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n              )\n            )\n          )\n        )\n      )\n    )\n  ),\n  \"service\", \"STATUS\", \"\", \"\"\n)) == 1) or vector(0)",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "WARNING",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 15,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "count((label_replace(\n  (\n    2 * (\n      1 -\n      min by (env) (\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                pod=~\"heimdall-.*|iris-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n            )\n          )\n        )\n      )\n    )\n  )\n  +\n  on(env)\n  (\n    min by (env) (\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-api\",\n              pod=~\"heimdall-.*|iris-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n              pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n              pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n          )\n        )\n      )\n    )\n    *\n    (\n      (\n        max by (env) (\n          label_replace(\n            kube_job_status_failed{\n              namespace=~\"(kan-[0-9]+|dev|test)-(api|cms|frontend)\",\n              job_name=~\".*backup.*|.*dump.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-(api|cms|frontend)\"\n          )\n        )\n      )\n      or on(env)\n      (\n        0 *\n        min by (env) (\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                  pod=~\"heimdall-.*|iris-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                  pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                  pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n              )\n            )\n          )\n        )\n      )\n    )\n  ),\n  \"service\", \"STATUS\", \"\", \"\"\n)) == 2) or vector(0)",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "FAILED",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "(sum(round(\n  sum by (env) (\n    label_replace(\n      increase(kube_pod_container_status_restarts_total{\n        namespace=~\"(kan-[0-9]+|dev|test)-(api|cms|frontend)\",\n        container!=\"\",\n        container!=\"POD\",\n        pod=~\"heimdall-.*|iris-.*|api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*|betting-.*|nuxt-.*|websockets-.*\"\n      }[1h]),\n      \"env\", \"$1\",\n      \"namespace\", \"(kan-[0-9]+|dev|test)-.*\"\n    )\n  )\n))) or vector(0)",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Pod Restarts (1h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": false
+            },
+            "inspect": false
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ENVIRONMENT"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto",
+                  "wrapText": false
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open environment details",
+                    "url": "/d/efjr0vrx7fqpsf/environment-details?var-env=$${__value.text}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "API|CMS|FRONTEND"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "dark-red",
+                        "index": 0,
+                        "text": "FAILED"
+                      },
+                      "1": {
+                        "color": "dark-green",
+                        "index": 1,
+                        "text": "OK"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text",
+                  "wrapText": false
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "dark-red",
+                      "value": null
+                    },
+                    {
+                      "color": "dark-green",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "STATUS"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "dark-green",
+                        "index": 0,
+                        "text": "OK"
+                      },
+                      "1": {
+                        "color": "dark-yellow",
+                        "index": 1,
+                        "text": "WARNING"
+                      },
+                      "2": {
+                        "color": "dark-red",
+                        "index": 2,
+                        "text": "FAILED"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text",
+                  "wrapText": false
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "dark-green",
+                      "value": null
+                    },
+                    {
+                      "color": "dark-yellow",
+                      "value": 1
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RESTARTS (1H)"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text",
+                  "wrapText": false
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "dark-green",
+                      "value": null
+                    },
+                    {
+                      "color": "dark-yellow",
+                      "value": 1
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 10,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "ENVIRONMENT"
+          }
+        ]
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "label_replace(\n  min by (env) (\n    label_replace(\n      kube_pod_status_ready{\n        condition=\"true\",\n        namespace=~\"(kan-[0-9]+|dev|test)-api\",\n        pod=~\"heimdall-.*|iris-.*\"\n      },\n      \"env\", \"$1\",\n      \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n    )\n  ),\n  \"service\", \"API\", \"\", \"\"\n)",
+          "format": "time_series",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(\n  min by (env) (\n    label_replace(\n      kube_pod_status_ready{\n        condition=\"true\",\n        namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n        pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n      },\n      \"env\", \"$1\",\n      \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n    )\n  ),\n  \"service\", \"CMS\", \"\", \"\"\n)",
+          "format": "time_series",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(\n  min by (env) (\n    label_replace(\n      kube_pod_status_ready{\n        condition=\"true\",\n        namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n        pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n      },\n      \"env\", \"$1\",\n      \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n    )\n  ),\n  \"service\", \"FRONTEND\", \"\", \"\"\n)",
+          "format": "time_series",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(\n  (\n    2 * (\n      1 -\n      min by (env) (\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                pod=~\"heimdall-.*|iris-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n            )\n          )\n        )\n      )\n    )\n  )\n  +\n  on(env)\n  (\n    min by (env) (\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-api\",\n              pod=~\"heimdall-.*|iris-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n              pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n              pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n          )\n        )\n      )\n    )\n    *\n    (\n      (\n        max by (env) (\n          label_replace(\n            kube_job_status_failed{\n              namespace=~\"(kan-[0-9]+|dev|test)-(api|cms|frontend)\",\n              job_name=~\".*backup.*|.*dump.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-(api|cms|frontend)\"\n          )\n        )\n      )\n      or on(env)\n      (\n        0 *\n        min by (env) (\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                  pod=~\"heimdall-.*|iris-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                  pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                  pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n              )\n            )\n          )\n        )\n      )\n    )\n  ),\n  \"service\", \"STATUS\", \"\", \"\"\n)",
+          "format": "time_series",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "S"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(\n  (\n    round(\n  sum by (env) (\n    label_replace(\n      increase(kube_pod_container_status_restarts_total{\n        namespace=~\"(kan-[0-9]+|dev|test)-(api|cms|frontend)\",\n        container!=\"\",\n        container!=\"POD\",\n        pod=~\"heimdall-.*|iris-.*|api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*|betting-.*|nuxt-.*|websockets-.*\"\n      }[1h]),\n      \"env\", \"$1\",\n      \"namespace\", \"(kan-[0-9]+|dev|test)-.*\"\n    )\n  )\n)\n    or on(env)\n    (\n      0 * (label_replace(\n  (\n    2 * (\n      1 -\n      min by (env) (\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                pod=~\"heimdall-.*|iris-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n            )\n          )\n        )\n        or\n        (\n          min by (env) (\n            label_replace(\n              kube_pod_status_ready{\n                condition=\"true\",\n                namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n              },\n              \"env\", \"$1\",\n              \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n            )\n          )\n        )\n      )\n    )\n  )\n  +\n  on(env)\n  (\n    min by (env) (\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-api\",\n              pod=~\"heimdall-.*|iris-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n              pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n          )\n        )\n      )\n      or\n      (\n        min by (env) (\n          label_replace(\n            kube_pod_status_ready{\n              condition=\"true\",\n              namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n              pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n          )\n        )\n      )\n    )\n    *\n    (\n      (\n        max by (env) (\n          label_replace(\n            kube_job_status_failed{\n              namespace=~\"(kan-[0-9]+|dev|test)-(api|cms|frontend)\",\n              job_name=~\".*backup.*|.*dump.*\"\n            },\n            \"env\", \"$1\",\n            \"namespace\", \"(kan-[0-9]+|dev|test)-(api|cms|frontend)\"\n          )\n        )\n      )\n      or on(env)\n      (\n        0 *\n        min by (env) (\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-api\",\n                  pod=~\"heimdall-.*|iris-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-api\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-cms\",\n                  pod=~\"api-.*|backend-.*|frontend-.*|rest-.*|nginx-.*|mysql-0|postgresql-0|rabbitmq-0|redis-master-0|redis-replicas-0|memcached-.*|phpmyadmin-.*|worker\\\\..*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-cms\"\n              )\n            )\n          )\n          or\n          (\n            min by (env) (\n              label_replace(\n                kube_pod_status_ready{\n                  condition=\"true\",\n                  namespace=~\"(kan-[0-9]+|dev|test)-frontend\",\n                  pod=~\"betting-.*|nuxt-.*|websockets-.*\"\n                },\n                \"env\", \"$1\",\n                \"namespace\", \"(kan-[0-9]+|dev|test)-frontend\"\n              )\n            )\n          )\n        )\n      )\n    )\n  ),\n  \"service\", \"STATUS\", \"\", \"\"\n))\n    )\n  ),\n  \"service\", \"RESTARTS (1H)\", \"\", \"\"\n)",
+          "format": "time_series",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "RE"
+        }
+      ],
+      "title": "Environment Status Overview",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "labelsToFields": true,
+            "mode": "seriesToRows",
+            "reducers": [
+              "last"
+            ]
+          }
+        },
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "service",
+            "emptyValue": "null",
+            "rowField": "env",
+            "valueField": "Last"
+          }
+        },
+        {
+          "id": "joinByField",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "includeByName": {},
+            "indexByName": {
+              "API": 1,
+              "CMS": 2,
+              "FRONTEND": 3,
+              "RESTARTS_1H": 5,
+              "STATUS": 4,
+              "env\\service": 0
+            },
+            "renameByName": {
+              "RESTARTS (1H)": "RESTARTS (1H)",
+              "RESTARTS_1H": "RESTARTS (1H)",
+              "env\\service": "ENVIRONMENT"
+            }
+          }
+        }
+      ],
+      "transparent": true,
+      "type": "table"
+    }
+  ],
+  "preload": true,
+  "schemaVersion": 40,
+  "tags": [
+    "environment"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Environment Status Overview",
+  "uid": "environment-status-overview-fixed",
+  "version": 3,
+  "weekStart": ""
+}

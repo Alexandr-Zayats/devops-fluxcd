@@ -1,0 +1,32 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ${env}-${app}-phpmyadmin
+  namespace: flux-system
+spec:
+  interval: 10m
+  releaseName: phpmyadmin
+  chart:
+    spec:
+      chart: phpmyadmin
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami-oci
+        namespace: flux-system
+      version: 18.1.6
+  values:
+    image:
+      registry: 000000000000.dkr.ecr.us-east-1.amazonaws.com
+      repository: tools/phpmyadmin
+      tag: 1.0.198
+    nodeSelector:
+        arch: arm64
+    tolerations:
+      - key: pool
+        value: infra
+        effect: NoSchedule
+  valuesFrom:
+    - kind: ConfigMap
+      name: phpadmin-values
+      valuesKey: values.yaml

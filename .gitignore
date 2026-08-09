@@ -1,0 +1,6 @@
+*.sops.yaml
+*.sealed.yaml
+*.secret.yaml
+*.pem
+*.key
+.env

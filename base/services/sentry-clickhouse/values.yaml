@@ -1,0 +1,43 @@
+clickhouse:
+  image: clickhouse/clickhouse-server
+  imageVersion: 24.12-alpine
+  replicas: 1
+  #volumes:
+  #  - name: users
+  #    emptyDir: {}
+  #volumeMounts:
+  #  - name: users
+  #    mountPath: /etc/clickhouse-server/users.d
+  configmap:
+    enabled: true
+    remote_servers:
+      replica:
+        backup:
+          enabled: false
+    users:
+      enabled: true
+      user:
+      - name: "default"
+        config:
+          password: ""
+          networks:
+            - "::/0"
+          settings:
+            enable_json_type: 1
+          profile: "default"
+          quota: "default"
+  persistentVolumeClaim:
+    enabled: true
+    dataPersistentVolume:
+      enabled: true
+      storageClassName: gp3-5k-250-ext4
+    logsPersistentVolume:
+      enabled: true
+      storageClassName: gp3-5k-250-ext4
+
+nodeSelector:
+    kubernetes.io/arch: arm64
+tolerations:
+  - key: pool
+    value: sentry
+    effect: NoSchedule

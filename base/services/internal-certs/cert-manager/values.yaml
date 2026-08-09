@@ -1,0 +1,22 @@
+enableCertificateOwnerRef: true
+tolerations:
+  - key: pool
+    value: infra
+    effect: NoSchedule
+webhook:
+  tolerations:
+    - key: pool
+      value: infra
+      effect: NoSchedule
+cainjector:
+  tolerations:
+    - key: pool
+      value: infra
+      effect: NoSchedule
+startupapicheck:
+  tolerations:
+    - key: pool
+      value: infra
+      effect: NoSchedule
+crds:
+  enabled: true

@@ -1,0 +1,19 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  labels:
+    project: devops
+  name: common-victoriametrics-stack
+  namespace: monitoring
+spec:
+  groups:
+    - name: victoriametrics
+      rules:
+        - alert: VM ingestion limit
+          annotations:
+            description: No data has been ingested into VictoriaMetrics for the last 3 minutes.
+          expr: sum(irate(vm_rows)[1m]) <= 0
+          for: 3m
+          labels:
+            severity: warning

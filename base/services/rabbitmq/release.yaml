@@ -1,0 +1,28 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ${env}-${app}-rabbitmq
+spec:
+  interval: 10m
+  releaseName: rabbitmq
+  chart:
+    spec:
+      chart: rabbitmq
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami-oci
+        namespace: flux-system
+      version: 15.2.0
+  values:
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    tolerations:
+      - key: pool
+        value: infra
+        effect: NoSchedule
+  valuesFrom:
+    - kind: ConfigMap
+      # name: redis-cluster-values
+      name: rabbitmq-values
+      valuesKey: values.yaml

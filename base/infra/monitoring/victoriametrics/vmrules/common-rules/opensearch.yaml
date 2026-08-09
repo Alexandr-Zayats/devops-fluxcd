@@ -1,0 +1,20 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  labels:
+    project: common
+  name: opensearch
+  namespace: monitoring
+spec:
+  groups:
+    - name: aws-opensearch-alerts
+      rules:
+        - alert: OpenSearchLowDisk
+          expr: aws_es_free_storage_space_average < 40000
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "\U0001F6A8 OpenSearch Low Disk Space!"
+            description: "Free disk space is below 40Gi for more than 5 minutes."

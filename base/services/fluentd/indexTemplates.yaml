@@ -1,0 +1,69 @@
+---
+# ES index template for ec2 logs
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: index-templates
+data:
+  fluentd-es-template-geo.json: |
+    {
+      "index_patterns": ["ec2-<<TAG>>-*"],
+      "template": {
+        "settings": {
+          "index": {
+            "lifecycle": {
+              "name": "ec2-policy-geo",
+              "rollover_alias": "ec2-<<TAG>>"
+            },
+            "number_of_shards": "<<shard>>",
+            "number_of_replicas": "<<replica>>",
+            "default_pipeline": "geoip"
+          }
+        },
+        "mappings": {
+          "properties": {
+            "geo": {
+              "properties": {
+                "location": {
+                  "type": "geo_point"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+  fluentd-es-template.json: |
+    {
+      "index_patterns": ["ec2-<<TAG>>-*"],
+      "template": {
+        "settings": {
+          "index": {
+            "lifecycle": {
+              "name": "ec2-policy",
+              "rollover_alias": "ec2-<<TAG>>"
+            },
+            "number_of_shards": "<<shard>>",
+            "number_of_replicas": "<<replica>>"
+          }
+        }
+      }
+    }
+
+  fluentd-es-template-k8s.json: |
+    {
+      "index_patterns": ["k8s-<<TAG>>-*"],
+      "template": {
+        "settings": {
+          "index": {
+            "lifecycle": {
+              "name": "k8s-policy",
+              "rollover_alias": "k8s-<<TAG>>"
+            },
+            "number_of_shards": "<<shard>>",
+            "number_of_replicas": "<<replica>>"
+          }
+        }
+      }
+    }

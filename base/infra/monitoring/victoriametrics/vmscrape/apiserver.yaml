@@ -1,0 +1,33 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: apiserver
+  namespace: monitoring
+  labels:
+    app: apiserver
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+spec:
+  endpoints:
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      port: https
+      scheme: https
+      tlsConfig:
+        caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        serverName: kubernetes
+      metricRelabelConfigs:
+        - sourceLabels: [__name__]
+          regex: (apiserver_request_duration_seconds_bucket|etcd_request_duration_seconds_bucket|apiserver_request_sli_duration_seconds_bucket|kubernetes_feature_enabled|apiserver_request_body_size_bytes_bucket)
+          action: drop
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+      - default
+  selector:
+    matchLabels:
+      component: apiserver
+      provider: kubernetes

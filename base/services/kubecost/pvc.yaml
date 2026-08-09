@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubecost-cost-analyzer
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 32Gi
+  volumeMode: Filesystem
+  volumeName: kubecost-cost-analyzer
+  storageClassName: ""

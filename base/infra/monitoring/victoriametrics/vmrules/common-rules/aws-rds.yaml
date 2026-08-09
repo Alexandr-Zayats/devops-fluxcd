@@ -1,0 +1,184 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: aws-rds-alerts
+  namespace: monitoring
+  labels:
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+    vmrules: aws-rds
+spec:
+  groups:
+
+  - name: aws-rds-cpu
+    rules:
+      - alert: RDSHighCPUUtilization
+        expr: |
+          max by (dimension_DBInstanceIdentifier, kubeClusterName) (
+            aws_rds_cpuutilization_average{
+              job="prometheus-yace",
+              dimension_DBInstanceIdentifier!=""
+            }
+          ) > 85
+        for: 10m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RDS instance {{ $labels.dimension_DBInstanceIdentifier }} has high CPU utilization"
+          description: >
+            RDS instance {{ $labels.dimension_DBInstanceIdentifier }}
+            CPU utilization is above 85% for more than 10 minutes.
+
+      - alert: RDSCriticalCPUUtilization
+        expr: |
+          max by (dimension_DBInstanceIdentifier, kubeClusterName) (
+            aws_rds_cpuutilization_average{
+              job="prometheus-yace",
+              dimension_DBInstanceIdentifier!=""
+            }
+          ) > 95
+        for: 10m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RDS instance {{ $labels.dimension_DBInstanceIdentifier }} has critical CPU utilization"
+          description: >
+            RDS instance {{ $labels.dimension_DBInstanceIdentifier }}
+            CPU utilization is above 95% for more than 10 minutes.
+            Immediate action required.
+
+  - name: aws-rds-memory
+    rules:
+      - alert: RDSLowFreeableMemory
+        expr: |
+          (
+            100 *
+            min by (dimension_DBInstanceIdentifier, kubeClusterName) (
+              aws_rds_freeable_memory_average{
+                job="prometheus-yace",
+                dimension_DBInstanceIdentifier!=""
+              }
+            )
+            / ${rds_total_memory_bytes}
+          ) < 25
+        for: 15m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RDS instance {{ $labels.dimension_DBInstanceIdentifier }} has low freeable memory"
+          description: >
+            RDS instance {{ $labels.dimension_DBInstanceIdentifier }}
+            has less than 25% freeable memory for more than 15 minutes.
+            Current freeable memory (%): {{ $value | humanize }}.
+
+      - alert: RDSCriticalFreeableMemory
+        expr: |
+          (
+            100 *
+            min by (dimension_DBInstanceIdentifier, kubeClusterName) (
+              aws_rds_freeable_memory_average{
+                job="prometheus-yace",
+                dimension_DBInstanceIdentifier!=""
+              }
+            )
+            / ${rds_total_memory_bytes}
+          ) < 15
+        for: 10m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RDS instance {{ $labels.dimension_DBInstanceIdentifier }} has critically low freeable memory"
+          description: >
+            RDS instance {{ $labels.dimension_DBInstanceIdentifier }}
+            has less than 15% freeable memory for more than 10 minutes.
+            Risk of OOM or severe performance degradation.
+
+  - name: aws-rds-storage
+    rules:
+      - alert: RDSLowFreeStorageSpace
+        expr: |
+          (
+            100 *
+            min by (dimension_DBInstanceIdentifier, kubeClusterName) (
+              aws_rds_free_storage_space_minimum{
+                job="prometheus-yace",
+                dimension_DBInstanceIdentifier!=""
+              }
+            )
+            / ${rds_total_storage_bytes}
+          ) < 15
+        for: 30m
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RDS instance {{ $labels.dimension_DBInstanceIdentifier }} has low free storage space"
+          description: >
+            RDS instance {{ $labels.dimension_DBInstanceIdentifier }}
+            has less than 15% free storage space for more than 30 minutes.
+            Current free storage (%): {{ $value | humanize }}.
+
+      - alert: RDSCriticalFreeStorageSpace
+        expr: |
+          (
+            100 *
+            min by (dimension_DBInstanceIdentifier, kubeClusterName) (
+              aws_rds_free_storage_space_minimum{
+                job="prometheus-yace",
+                dimension_DBInstanceIdentifier!=""
+              }
+            )
+            / ${rds_total_storage_bytes}
+          ) < 10
+        for: 15m
+        labels:
+          severity: critical
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RDS instance {{ $labels.dimension_DBInstanceIdentifier }} has critically low free storage space"
+          description: >
+            RDS instance {{ $labels.dimension_DBInstanceIdentifier }}
+            has less than 10% free storage space for more than 15 minutes.
+            Risk of write failures.
+
+      - alert: RDSStorageWillFillIn7Days
+        expr: |
+          (
+            min by (dimension_DBInstanceIdentifier, kubeClusterName) (
+              aws_rds_free_storage_space_minimum{
+                job="prometheus-yace",
+                dimension_DBInstanceIdentifier!=""
+              }
+            )
+          )
+          /
+          clamp_min(
+            rate(
+              aws_rds_free_storage_space_minimum{
+                job="prometheus-yace",
+                dimension_DBInstanceIdentifier!=""
+              }[6h]
+            ) * -1,
+            1
+          )
+          < (7 * 24 * 3600)
+        for: 1h
+        labels:
+          severity: warning
+          kubeClusterName: '{{ $labels.kubeClusterName }}'
+        annotations:
+          summary: "RDS instance {{ $labels.dimension_DBInstanceIdentifier }} storage will fill in less than 7 days"
+          description: >
+            Based on the current storage consumption rate,
+            RDS instance {{ $labels.dimension_DBInstanceIdentifier }}
+            will run out of storage in approximately {{ $value | humanizeDuration }}.
+            Plan storage expansion or data cleanup.

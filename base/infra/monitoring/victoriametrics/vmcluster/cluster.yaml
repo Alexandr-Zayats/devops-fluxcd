@@ -1,0 +1,168 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMCluster
+metadata:
+  name: vmcluster-persistent
+spec:
+  retentionPeriod: "3" # N.B. means months - 3months
+  replicationFactor: 2
+  vmstorage:
+    #nodeSelector:
+    #  pool: monitoring
+    tolerations:
+      - effect: NoSchedule
+        key: pool
+        operator: Equal
+        value: monitoring
+    logFormat: json
+    logLevel: INFO
+    extraArgs:
+      search.maxUniqueTimeseries: "200000000"
+      dedup.minScrapeInterval: 30s
+    replicaCount: 3
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3-5k-250-ext4
+          resources:
+            requests:
+              storage: 1000Gi
+    resources:
+      # from vm-stack
+      requests:
+        cpu: 2
+        memory: 6Gi
+      limits:
+        cpu: 4
+        memory: 24Gi
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - vmstorage
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+    podMetadata:
+      labels:
+        stream: devops
+        env: dev
+        app: vmstorage
+        product: observability
+  # ----------- SELECT ------------
+  vmselect:
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - vmselect
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+    #nodeSelector:
+    #  pool: monitoring
+    tolerations:
+      - effect: NoSchedule
+        key: pool
+        operator: Equal
+        value: monitoring
+    logFormat: json
+    logLevel: INFO
+    extraArgs:
+      search.maxQueryDuration: 300s
+      search.maxConcurrentRequests: "64"
+      search.logSlowQueryDuration: 10s
+      search.maxQueryLen: "65536"
+      memory.allowedPercent: "60"
+      dedup.minScrapeInterval: 30s
+    replicaCount: 3
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3-5k-250-ext4
+          resources:
+            requests:
+              storage: 20Gi
+    resources:
+      limits:
+        cpu: 1
+        memory: 4Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    hpa:
+      maxReplicas: 4
+      minReplicas: 2
+      metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              averageUtilization: 80
+              type: Utilization
+    podMetadata:
+      labels:
+        stream: devops
+        env: dev
+        app: vmselect
+        product: observability
+  # ----------- INSERT ------------
+  vminsert:
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - vminsert
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+    #nodeSelector:
+    #  pool: monitoring
+    tolerations:
+      - effect: NoSchedule
+        key: pool
+        operator: Equal
+        value: monitoring
+    replicaCount: 3
+    logFormat: json
+    logLevel: INFO
+    extraArgs:
+      replicationFactor: "2"
+      maxLabelsPerTimeseries: "50"
+      maxConcurrentInserts: "50"
+      sortLabels: "true"
+    resources:
+      limits:
+        cpu: 2100m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 1Gi
+    podMetadata:
+      labels:
+        stream: devops
+        env: dev
+        app: vminsert
+        product: observability
+    hpa:
+      maxReplicas: 6
+      minReplicas: 3
+      metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              averageUtilization: 80
+              type: Utilization

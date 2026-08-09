@@ -1,0 +1,23 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kyverno-controller
+  namespace: flux-system
+spec:
+  interval: 720m0s
+  sourceRef:
+    kind: OCIRepository
+    name: kyverno-controller
+    namespace: flux-system
+  serviceAccountName: kustomize-controller
+  targetNamespace: kyverno
+  path: ./
+  prune: true
+  wait: true
+  timeout: 5m
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: terraform-to-flux-bridge
+        optional: true

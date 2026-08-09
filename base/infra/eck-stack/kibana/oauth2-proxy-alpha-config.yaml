@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-oauth2-proxy-alpha
+  namespace: eck
+data:
+  alpha-config.yaml: |
+    server:
+      bindAddress: "0.0.0.0:4180"
+    upstreamConfig:
+      upstreams:
+        - id: kibana
+          path: "/"
+          uri: "http://kibana-kb-http:5601"
+    injectRequestHeaders:
+      - name: Authorization
+        values:
+          - claim: email
+            basicAuthPassword:
+              fromEnv: OAUTH2_PROXY_UPSTREAM_BASIC_PASSWORD
+    providers:
+      - id: google
+        provider: google
+        clientID: "$GOOGLE_CLIENT_ID"
+        clientSecretFile: "/etc/oauth2-proxy/secret/client_secret"
+        scope: "openid email profile"

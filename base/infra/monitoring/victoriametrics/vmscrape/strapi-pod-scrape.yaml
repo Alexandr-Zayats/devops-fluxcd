@@ -1,0 +1,36 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: portal-strapi
+  namespace: monitoring
+  labels:
+    app: strapi
+    scope: logging
+spec:
+  attach_metadata: {}
+  namespaceSelector:
+    matchNames:
+      - portal
+  podMetricsEndpoints:
+    - port: http
+      scheme: http
+      path: /metrics
+      honorTimestamps: true
+      attach_metadata: {}
+      relabelConfigs:
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_pod_label_stream
+          targetLabel: stream
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_pod_label_owner
+          targetLabel: owner
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_pod_label_env
+          targetLabel: ${env}
+  selector:
+    matchLabels:
+      app: strapi

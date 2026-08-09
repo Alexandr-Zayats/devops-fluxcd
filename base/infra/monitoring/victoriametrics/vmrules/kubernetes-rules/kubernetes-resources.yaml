@@ -1,0 +1,81 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  namespace: monitoring
+  name: kubernetes-resources
+  labels:
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+    vmrules: kubernetes-resources
+spec:
+  groups:
+    - name: kubernetes-resources
+      rules:
+        - alert: KubeCPUOvercommit
+          annotations:
+            description: Cluster has overcommitted CPU resource requests for Pods by {{ $value }} CPU shares and cannot tolerate node failure.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecpuovercommit
+            summary: Cluster has overcommitted CPU resource requests.
+          expr: |-
+            sum(namespace_cpu:kube_pod_container_resource_requests:sum{}) - (sum(kube_node_status_allocatable{resource="cpu"}) - max(kube_node_status_allocatable{resource="cpu"})) > 0
+            and
+            (sum(kube_node_status_allocatable{resource="cpu"}) - max(kube_node_status_allocatable{resource="cpu"})) > 0
+          for: 10m
+          labels:
+            severity: warning
+        - alert: KubeMemoryOvercommit
+          annotations:
+            description: Cluster has overcommitted memory resource requests for Pods by {{ $value | humanize }} bytes and cannot tolerate node failure.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubememoryovercommit
+            summary: Cluster has overcommitted memory resource requests.
+          expr: |-
+            sum(namespace_memory:kube_pod_container_resource_requests:sum{}) - (sum(kube_node_status_allocatable{resource="memory"}) - max(kube_node_status_allocatable{resource="memory"})) > 0
+            and
+            (sum(kube_node_status_allocatable{resource="memory"}) - max(kube_node_status_allocatable{resource="memory"})) > 0
+          for: 10m
+          labels:
+            severity: warning
+        - alert: KubeCPUQuotaOvercommit
+          annotations:
+            description: Cluster has overcommitted CPU resource requests for Namespaces.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecpuquotaovercommit
+            summary: Cluster has overcommitted CPU resource requests.
+          expr: |-
+            sum(min without(resource) (kube_resourcequota{job="kube-state-metrics", type="hard", resource=~"(cpu|requests.cpu)"}))
+              /
+            sum(kube_node_status_allocatable{resource="cpu", job="kube-state-metrics"})
+              > 1.5
+          for: 5m
+          labels:
+            severity: warning
+        - alert: KubeMemoryQuotaOvercommit
+          annotations:
+            description: Cluster has overcommitted memory resource requests for Namespaces.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubememoryquotaovercommit
+            summary: Cluster has overcommitted memory resource requests.
+          expr: |-
+            sum(min without(resource) (kube_resourcequota{job="kube-state-metrics", type="hard", resource=~"(memory|requests.memory)"}))
+              /
+            sum(kube_node_status_allocatable{resource="memory", job="kube-state-metrics"})
+              > 1.5
+          for: 5m
+          labels:
+            severity: warning
+        - alert: KubeQuotaExceeded
+          annotations:
+            description: Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage }} of its {{ $labels.resource }} quota.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubequotaexceeded
+            summary: Namespace quota has exceeded the limits.
+          expr: |-
+            kube_resourcequota{job="kube-state-metrics", type="used"}
+              / ignoring(instance, job, type)
+            (kube_resourcequota{job="kube-state-metrics", type="hard"} > 0)
+              > 1
+          for: 15m
+          labels:
+            severity: warning

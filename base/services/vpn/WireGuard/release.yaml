@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wireguard
+  namespace: wireguard
+spec:
+  interval: 10m
+  releaseName: wireguard
+  targetNamespace: wireguard
+  chart:
+    spec:
+      chart: wireguard
+      sourceRef:
+        kind: HelmRepository
+        name: demo-platform
+        namespace: flux-system
+      version: 0.30.0
+  valuesFrom:
+    - kind: ConfigMap
+      name: wg-values
+      valuesKey: values.yaml

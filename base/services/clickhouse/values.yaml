@@ -1,0 +1,21 @@
+---
+global:
+  defaultStorageClass: gp3-5k-250-ext4
+  security:
+    allowInsecureImages: true
+persistence:
+  storageClass: gp3-5k-250-ext4
+shards: 2
+replicaCount: 1
+keeper:
+  replicaCount: 1
+
+auth:
+  username: clickhouse
+  password: clickhouse
+
+clickhouse:
+  image: "clickhouse/clickhouse-server"
+  imageVersion: 24.8-alpine # "head-alpine"
+  imagePullPolicy: "IfNotPresent"
+

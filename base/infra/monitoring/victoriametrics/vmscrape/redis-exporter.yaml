@@ -1,0 +1,27 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: redis-exporter
+  namespace: monitoring
+  labels:
+    app: redis-exporter
+    owner: devops
+    stream: devops
+    env: ${env}
+    vmservicescrape: redis-exporter
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+spec:
+  selector:
+    matchLabels:
+      app: prometheus-redis-exporter
+  namespaceSelector:
+    matchNames:
+      - "monitoring"
+  endpoints:
+    - port: redis-exporter
+      scheme: http
+      interval: 30s
+

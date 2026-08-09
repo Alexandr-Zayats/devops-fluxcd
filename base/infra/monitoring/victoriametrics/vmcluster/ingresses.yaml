@@ -1,0 +1,63 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vmselect
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/group.name: demo-platform-private
+    alb.ingress.kubernetes.io/group.order: "100"
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    alb.ingress.kubernetes.io/certificate-arn: ${tools_cert_arn}
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+  labels:
+    app: vmselect
+    env: ${env}
+    product: observability
+spec:
+  ingressClassName: alb
+  rules:
+    - host: vmselect.${private_domain}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vmselect-vmcluster-persistent
+                port:
+                  number: 8481
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vminsert
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/group.name: demo-platform-private
+    alb.ingress.kubernetes.io/group.order: "100"
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    alb.ingress.kubernetes.io/certificate-arn: ${tools_cert_arn}
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+  labels:
+    app: vminsert
+    env: ${env}
+    product: observability
+spec:
+  ingressClassName: alb
+  rules:
+    - host: vminsert.${private_domain}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vminsert-vmcluster-persistent
+                port:
+                  number: 8480

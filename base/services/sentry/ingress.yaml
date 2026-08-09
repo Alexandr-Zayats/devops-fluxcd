@@ -1,0 +1,53 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sentry-ext
+  namespace: senrty
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:000000000000:certificate/764ccdf2-5292-4c2e-88c8-3829aac80cef
+    alb.ingress.kubernetes.io/group.name: demo-platform-public
+    alb.ingress.kubernetes.io/group.order: "100"
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    alb.ingress.kubernetes.io/target-type: ip
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+    nginx.ingress.kubernetes.io/proxy-busy-buffers-size: 256k
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: alb
+  rules:
+  - host: ${subDomain}.${public_domain}
+    http:
+      paths:
+      - backend:
+          service:
+            name: sentry-relay
+            port:
+              number: 3000
+        path: /api/0/relays/*
+        pathType: ImplementationSpecific
+      - backend:
+          service:
+            name: sentry-web
+            port:
+              number: 9000
+        path: /api/0/*
+        pathType: ImplementationSpecific
+      - backend:
+          service:
+            name: sentry-relay
+            port:
+              number: 3000
+        path: /api/*
+        pathType: ImplementationSpecific
+      #- backend:
+      #    service:
+      #      name: sentry-web
+      #      port:
+      #        number: 9000
+      #  path: /*
+       # pathType: ImplementationSpecific

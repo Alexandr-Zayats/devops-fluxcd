@@ -1,0 +1,103 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  namespace: monitoring
+  name: node-rules
+  labels:
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+    vmrules: node-rules
+spec:
+  groups:
+    - name: node.rules
+      rules:
+        - expr: |-
+            topk by(cluster, namespace, pod) (1,
+              max by (cluster, node, namespace, pod) (
+                label_replace(kube_pod_info{job="kube-state-metrics",node!=""}, "pod", "$1", "pod", "(.*)")
+            ))
+          record: 'node_namespace_pod:kube_pod_info:'
+        - expr: |-
+            count by (cluster, node) (sum by (node, cpu) (
+              node_cpu_seconds_total{job="node-exporter"}
+            * on (namespace, pod) group_left(node)
+              topk by(namespace, pod) (1, node_namespace_pod:kube_pod_info:)
+            ))
+          record: node:node_num_cpu:sum
+        - expr: |-
+            sum(
+              node_memory_MemAvailable_bytes{job="node-exporter"} or
+              (
+                node_memory_Buffers_bytes{job="node-exporter"} +
+                node_memory_Cached_bytes{job="node-exporter"} +
+                node_memory_MemFree_bytes{job="node-exporter"} +
+                node_memory_Slab_bytes{job="node-exporter"}
+              )
+            ) by (cluster)
+          record: :node_memory_MemAvailable_bytes:sum
+        - expr: |-
+            sum(rate(node_cpu_seconds_total{job="node-exporter",mode!="idle",mode!="iowait",mode!="steal"}[5m])) /
+            count(sum(node_cpu_seconds_total{job="node-exporter"}) by (cluster, instance, cpu))
+          record: cluster:node_cpu:ratio_rate5m
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  namespace: monitoring
+  name: node-network
+  labels:
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+    vmrules: node-network
+spec:
+  groups:
+    - name: node-network
+      rules:
+        - alert: NodeNetworkInterfaceFlapping
+          annotations:
+            description: Network interface "{{ $labels.device }}" changing its up status often on node-exporter {{ $labels.namespace }}/{{ $labels.pod }}
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/nodenetworkinterfaceflapping
+            summary: Network interface is often changing its status
+          expr: changes(node_network_up{job="node-exporter",device!~"veth.+"}[2m]) > 2
+          for: 2m
+          labels:
+            severity: warning
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  namespace: monitoring
+  name: prometheus-node-recording-rules
+  labels:
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+    vmrules: prometheus-node-recording-rules
+spec:
+  groups:
+    - name: kube-prometheus-node-recording.rules
+      rules:
+        - expr: sum(rate(node_cpu_seconds_total{mode!="idle",mode!="iowait",mode!="steal"}[3m])) BY (instance)
+          record: instance:node_cpu:rate:sum
+        - expr: sum(rate(node_network_receive_bytes_total[3m])) BY (instance)
+          record: instance:node_network_receive_bytes:rate:sum
+        - expr: sum(rate(node_network_transmit_bytes_total[3m])) BY (instance)
+          record: instance:node_network_transmit_bytes:rate:sum
+        - expr: sum(rate(node_cpu_seconds_total{mode!="idle",mode!="iowait",mode!="steal"}[5m])) WITHOUT (cpu, mode) / ON(instance) GROUP_LEFT() count(sum(node_cpu_seconds_total) BY (instance, cpu)) BY (instance)
+          record: instance:node_cpu:ratio
+        - expr: sum(rate(node_cpu_seconds_total{mode!="idle",mode!="iowait",mode!="steal"}[5m]))
+          record: cluster:node_cpu:sum_rate5m
+        - expr: cluster:node_cpu:sum_rate5m / count(sum(node_cpu_seconds_total) BY (instance, cpu))
+          record: cluster:node_cpu:ratio

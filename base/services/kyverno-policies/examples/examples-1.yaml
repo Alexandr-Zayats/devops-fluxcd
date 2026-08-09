@@ -1,0 +1,32 @@
+# in this example policy, which triggers based on the resource kind Namespace 
+# a new NetworkPolicy will be generated in all new or existing Namespaces.
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-resources
+spec:
+  rules:
+  - name: generate-existing-networkpolicy
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+    generate:
+      generateExisting: true
+      kind: NetworkPolicy
+      apiVersion: networking.k8s.io/v1
+      name: default-deny
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true
+      data:
+        metadata:
+          labels:
+            created-by: kyverno
+        spec:
+          podSelector: {}
+          policyTypes:
+          - Ingress
+          - Egress
+

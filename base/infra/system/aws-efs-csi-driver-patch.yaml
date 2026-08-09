@@ -1,0 +1,27 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: aws-efs-csi-driver
+  namespace: devops
+spec:
+  chart:
+    spec:
+      version: 3.0.5 # latest as of 11-June-2024
+  values:
+    node:
+      serviceAccount:
+        annotations:
+         eks.amazonaws.com/role-arn: ${efs_csi_sa_role_arn}
+    controller:
+      serviceAccount:
+        annotations:
+         eks.amazonaws.com/role-arn: ${efs_csi_sa_role_arn}
+      # nested nodeSelector+tolerations for controller
+      nodeSelector:
+        pool: arm64
+      tolerations:
+      - effect: NoSchedule
+        key: pool
+        operator: Equal
+        value: infra

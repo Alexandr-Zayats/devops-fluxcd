@@ -1,0 +1,83 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana
+  labels:
+    dashboards: grafana
+    datasource: grafana
+spec:
+  config:
+    log:
+      mode: console
+    auth:
+      disable_login_form: 'false'
+      basic: 'true'
+      disable_signout_menu: 'false'
+    auth.generic_oauth:
+      enabled: 'true'
+      name: Google
+      allow_sign_up: 'true'
+      auto_login: 'false'
+      client_id: $__env{GF_AUTH_GENERIC_OAUTH_CLIENT_ID}
+      client_secret: $__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}
+      scopes: openid email profile
+      auth_url: https://accounts.google.com/o/oauth2/v2/auth
+      token_url: https://oauth2.googleapis.com/token
+      api_url: https://openidconnect.googleapis.com/v1/userinfo
+      allowed_domains: example-org.ca
+      auto_assign_org: 'true'
+      auto_assign_org_role: Viewer
+    server:
+      root_url: https://grafana.${private_domain}
+  deployment:
+    spec:
+      template:
+        spec:
+          tolerations:
+            - effect: NoSchedule
+              key: pool
+              operator: Equal
+              value: monitoring-grafana
+          containers:
+            - name: grafana
+              env:
+                - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-google-oauth
+                      key: client_id
+                - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-google-oauth
+                      key: client_secret
+              securityContext:
+                allowPrivilegeEscalation: true
+                readOnlyRootFilesystem: false
+  ingress:
+    metadata:
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internal
+        alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+        alb.ingress.kubernetes.io/certificate-arn: ${tools_cert_arn}
+        alb.ingress.kubernetes.io/target-type: ip
+        alb.ingress.kubernetes.io/healthcheck-path: /
+        alb.ingress.kubernetes.io/group.name: demo-platform-private
+        alb.ingress.kubernetes.io/group.order: "100"
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+        alb.ingress.kubernetes.io/ssl-redirect: "443"
+
+    spec:
+      ingressClassName: alb
+      rules:
+        - host: grafana.${private_domain}
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: grafana-service
+                    port:
+                      number: 3000 

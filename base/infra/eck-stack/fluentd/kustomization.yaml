@@ -1,0 +1,40 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # - namespaces.yaml
+  - release.yaml
+
+configMapGenerator:
+  - name: common-fluentd
+    options:
+      labels:
+        allowedToBeCloned: 'true'
+    files:
+      - common-configs/.buffer.conf
+      - common-configs/.dispatch.conf
+      - common-configs/.filters_activity_log.conf
+      - common-configs/.forward_params.conf
+      - common-configs/.source_applications.conf
+      - common-configs/.source_k8s.conf
+      - common-configs/.dispatch_ec2.conf
+      - common-configs/.es_connect.conf
+      - common-configs/.filters_k8s.conf
+      - common-configs/.prefix_add.conf
+      - common-configs/.source_forward.conf
+      - common-configs/.source_multi.conf
+
+  - name: index-templates
+    options:
+      labels:
+        allowedToBeCloned: 'true'
+    files:
+      - index-templates/fluentd-es-template-apps.json
+      - index-templates/fluentd-es-output-apps.conf
+      - index-templates/fluentd-es-template-geo.json
+      - index-templates/fluentd-es-template-k8s.json
+      - index-templates/fluentd-es-template.json
+      - index-templates/activity-log.json
+
+generatorOptions:
+  disableNameSuffixHash: true

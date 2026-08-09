@@ -1,0 +1,115 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoria-metrics-operator
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: victoria-metrics-operator
+      version: 0.62.1
+      sourceRef:
+        kind: HelmRepository
+        name: victoriametrics
+        namespace: flux-system
+      interval: 24h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    createCRD: true
+    useLegacyCRD: false
+    replicaCount: 1
+    image:
+      pullPolicy: IfNotPresent
+    imagePullSecrets:
+      - name: regcred
+    logLevel: "info"
+    rbac:
+      create: true
+      pspEnabled: true
+    extraLabels:
+      app: victoria-metrics-operator
+      owner: sre
+      stream: sre
+      env: tools
+      product: observability
+      temporary: 'false'
+      deleteAfter: 'false'
+    podLabels:
+      app: victoria-metrics-operator
+      owner: sre
+      stream: sre
+      env: tools
+      product: observability
+      temporary: 'false'
+      deleteAfter: 'false'
+    annotations: {}
+    securityContext: {}
+    operator:
+      disable_prometheus_converter: false
+      prometheus_converter_add_argocd_ignore_annotations: false
+      psp_auto_creation_enabled: false
+      enable_converter_ownership: true
+      useCustomConfigReloader: true
+    serviceAccount:
+      create: true
+      name: ""
+    resources:
+      requests:
+        cpu: 120m
+        memory: 320Mi
+      limits:
+        cpu: 120m
+        memory: 320Mi
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    tolerations:
+      - effect: NoSchedule
+        key: pool
+        operator: Equal
+        value: monitoring
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - victoria-metrics-operator
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+    env:
+      - name: VM_VMAGENTDEFAULT_CONFIGRELOADERCPU
+        value: 150m
+      - name: VM_VMAGENTDEFAULT_CONFIGRELOADERMEMORY
+        value: 100Mi
+      - name: VM_VMALERTDEFAULT_CONFIGRELOADERCPU
+        value: 150m
+      - name: VM_VMALERTDEFAULT_CONFIGRELOADERMEMORY
+        value: 100Mi
+    admissionWebhooks:
+      enabled: false
+      enabledCRDValidation:
+        vmagent: true
+        vmalert: true
+        vmsingle: true
+        vmauth: true
+        vmrule: true
+        vmalertmanagerConfig: true
+        vmalertmanager: true
+        vmcluster: true
+        vmuser: true
+      policy: Fail
+      caBundle: ""
+      certManager:
+        enabled: false
+        issuer: {}
+    serviceMonitor:
+      enabled: false

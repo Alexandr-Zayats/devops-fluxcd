@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: clickhouse
+  namespace: flux-system
+spec:
+  interval: 30m
+  timeout: 2m
+  releaseName: clickhouse
+  chart:
+    spec:
+      chart: clickhouse
+      sourceRef:
+        kind: HelmRepository
+        name: demo-platform
+        namespace: flux-system
+      version: 4.1.9
+  valuesFrom:
+    - kind: ConfigMap
+      name: clickhouse-values
+      valuesKey: values.yaml

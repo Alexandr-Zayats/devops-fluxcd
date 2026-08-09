@@ -1,0 +1,57 @@
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: ${className}
+  namespace: ${karpenter_namespace}
+spec:
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        deleteOnTermination: true
+  kubelet:
+    maxPods: 150
+    systemReserved:
+      cpu: 200m
+      memory: 256Mi
+      ephemeral-storage: 2Gi
+    kubeReserved:
+      cpu: 300m
+      memory: 512Mi
+      ephemeral-storage: 4Gi
+    evictionHard:
+      memory.available: "100Mi"
+      nodefs.available: "10%"
+      nodefs.inodesFree: "10%"
+    evictionSoft:
+      memory.available: "500Mi"
+      nodefs.available: "15%"
+      nodefs.inodesFree: "15%"
+    evictionSoftGracePeriod:
+      memory.available: 1m
+      nodefs.available: 2m
+      nodefs.inodesFree: 2m
+
+    evictionMaxPodGracePeriod: 60
+    imageGCHighThresholdPercent: 85
+    imageGCLowThresholdPercent: 80
+    # cpuCFSQuota: true
+    # clusterDNS: ["10.0.1.100"]
+  # amiFamily: ${amiFamily}
+  amiSelectorTerms:
+    - alias: ${amiSelector}
+  role: ${karpenter_iam_node_role_name}
+  securityGroupSelectorTerms:
+    - id: ${karpenter_security_group_id}
+  subnetSelectorTerms: ${karpenter_subnets_ids}
+  metadataOptions:
+    httpEndpoint: enabled
+    httpTokens: optional    # или "required", если требуется IMDSv2
+    httpPutResponseHopLimit: 2
+  tags:
+    Name: ${eks_cluster_name}/karpenter/${className}
+    Project: ${eks_cluster_suffix}
+    Environment: ${env}
+    Terraform: 'true'

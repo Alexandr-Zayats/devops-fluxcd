@@ -1,0 +1,35 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ${env}-${app}-postgresql
+spec:
+  interval: 10m
+  releaseName: postgresql
+  chart:
+    spec:
+      chart: postgresql
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami-oci
+        namespace: flux-system
+      # version: 16.0.7
+  values:
+    primary:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: pool
+          value: infra
+          effect: NoSchedule
+    readReplicas:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: pool
+          value: infra
+          effect: NoSchedule
+  valuesFrom:
+    - kind: ConfigMap
+      name: postgresql-values
+      valuesKey: values.yaml

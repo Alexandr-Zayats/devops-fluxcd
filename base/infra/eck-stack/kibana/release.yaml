@@ -1,0 +1,46 @@
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana
+spec:
+  version: 8.17.4
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch
+  config:
+    server.publicBaseUrl: https://kibana.${private_domain}
+
+    xpack.security.authc.selector.enabled: false
+     
+    xpack.security.authc.providers:
+      basic.basic1:
+        order: 0
+
+  http:
+    service:
+      spec:
+        type: ClusterIP
+    tls:
+      selfSignedCertificate:
+        disabled: true
+
+  podTemplate:
+    spec:
+      tolerations:
+        - key: pool
+          operator: Equal
+          value: infra
+          effect: NoSchedule
+
+      containers:
+        - name: kibana
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 1Gi

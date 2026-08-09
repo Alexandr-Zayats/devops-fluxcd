@@ -1,0 +1,31 @@
+{
+  "index_patterns": ["k8s-<<TAG>>-*"],
+  "template": {
+    "settings": {
+      "index": {
+        "lifecycle": {
+          "name": "30-days@lifecycle",
+          "rollover_alias": "k8s-<<TAG>>"
+        },
+        "number_of_shards": "<<shard>>",
+        "number_of_replicas": "<<replica>>"
+      }
+    },
+    "mappings": {
+      "properties": {
+        "context": {
+          "properties": {
+            "traces": {
+              "type": "nested",
+              "properties": {
+                "line": { "type": "keyword" },
+                "file": { "type": "text" },
+                "function": { "type": "text" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

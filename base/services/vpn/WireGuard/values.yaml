@@ -1,0 +1,42 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wg-values
+data:
+  values.yaml: |
+    wireguard:
+      # -- A collection of clients that will be added to wg0.conf, accepts objects
+      # with keys PublicKey and AllowedIPs (mandatory) and optional FriendlyName or FriendlyJson
+      # (https://github.com/MindFlavor/prometheus_wireguard_exporter#friendly-tags) and PersistentKeepalive
+      # (https://www.wireguard.com/quickstart/#nat-and-firewall-traversal-persistence), stored in secret
+      clients:
+        - FriendlyName: oleksandr
+          AllowedIPs: 10.0.0.0/8
+          PublicKey: xbta+NEy/yGN0jI4LEB0E9IbGxOVFvfNHwdsD0nDyw0=
+      serverAddress: 10.250.10.1/24
+      serverCidr: 10.250.10.0/24
+      natAddSourceNet: true
+      interfaceOpts: {}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: true
+      privileged: false
+    service:
+      enabled: true
+      type: LoadBalancer
+      port: 443
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: 'external'
+        service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: 'ip'
+        service.beta.kubernetes.io/aws-load-balancer-scheme: 'internet-facing'
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: '3000'
+    healthSideCar:
+      enabled: true
+    tolerations:
+      - effect: NoSchedule
+        key: pool
+        operator: Equal
+        value: infra

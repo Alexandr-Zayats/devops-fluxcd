@@ -1,0 +1,42 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: eko
+  namespace: flux-system
+spec:
+  releaseName: eko
+  interval: 105m0s
+  timeout: 30m
+  targetNamespace: ${namespace}
+  install:
+    createNamespace: true
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: eko-stack
+      sourceRef:
+        kind: HelmRepository
+        name: demo-platform
+        namespace: flux-system
+      version: 0.2.4
+  values:
+    elasticsearch:
+      enabled: true
+      userList:
+        domain: example-org.ca
+        roles: {}
+    kibana:
+      enabled: true
+    oauth2Proxy:
+      enabled: true
+      externalSecretRemoteKey: ${kibana_aws_secret_path}
+      redirectUrl: https://kibana.${private_domain}/oauth2/callback
+      cookieDomain: .${private_domain}
+    ingress:
+      enabled: true
+      host: kibana.${private_domain}
+      annotations:
+        alb.ingress.kubernetes.io/certificate-arn: ${tools_cert_arn}

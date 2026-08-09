@@ -1,0 +1,20 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ps-operator
+spec:
+  releaseName: ps-operator
+  chart:
+    spec:
+      chart: ps-operator
+      sourceRef:
+        kind: HelmRepository
+        name: percona
+        namespace: flux-system
+      version: "0.6.1"
+  interval: 1h0m0s
+  install:
+    remediation:
+      retries: 3
+  values:
+    disableTelemetry: true

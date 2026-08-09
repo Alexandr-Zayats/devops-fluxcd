@@ -1,0 +1,16 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base/system/aws-loadbalance-controller
+  - ../../base/system/external-dns
+  - ../../base/system/external-secrets
+  - ../../base/system/aws-efs-csi-driver
+  # try capacitor-ui as a opiniated FluxCD web UI
+  #- ../../base/system/capasitor-ui
+
+patchesStrategicMerge:
+  - aws-loadbalance-controller-patch.yaml
+  - external-dns-patch.yaml
+  - external-secrets-patch.yaml
+  - aws-efs-csi-driver-patch.yaml

@@ -1,0 +1,96 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  labels:
+    project: superprod
+  name: common-gitlab-live
+  namespace: monitoring
+spec:
+  groups:
+    - name: gitlab-live
+      rules:
+        - alert: Overall total 5m load
+          annotations:
+            value: '{{ $value }}'
+            description: 'Gitlab instance total 5m load  ({{ $value }}) > 5'
+            summary: 5 min ec2 gtilab load (instance {{ $labels.instance }})
+          expr: |-
+            sum(node_load5{job="gitlab-live-node-exp"}) >5
+          for: 2m
+          labels:
+            component: gitlab
+            env: tools
+            severity: critical
+        - alert: Not enough free space
+          annotations:
+            value: '{{ $value }}'
+            description: 'Gitlab instance ebs is more than ({{ $value }}) full'
+            summary: Volume needs to be cleaned or enlarged (instance {{ $labels.instance }})
+          expr: |-
+            (node_filesystem_size_bytes{job="gitlab-live-node-exp",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}-node_filesystem_free_bytes{job="gitlab-live-node-exp",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}) *100/(node_filesystem_avail_bytes {job="gitlab-live-node-exp",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}+(node_filesystem_size_bytes{job="gitlab-live-node-exp",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}-node_filesystem_free_bytes{job="gitlab-live-node-exp",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"})) > 60
+          for: 1m
+          labels:
+            component: gitlab
+            env: tools
+            severity: critical
+        - alert: Used RAM Memory too high
+          annotations:
+            value: '{{ $value }}'
+            description: 'Gitlab instance RAM usage more than ({{ $value }}) percent'
+            summary: Gitlab EC2 used RAM Memory too high (instance {{ $labels.instance }})
+          expr: |-
+            (1 - (node_memory_MemAvailable_bytes{job="gitlab-live-node-exp"} / (node_memory_MemTotal_bytes{job="gitlab-live-node-exp"})))* 100 >40
+          for: 1m
+          labels:
+            component: gitlab
+            env: tools
+            severity: critical
+        - alert: Redis cpu usage
+          annotations:
+            value: '{{ $value }}'
+            description: 'Gitlab Redis cpu utilization ({{ $value }}) > 40 percent'
+            summary: Gitlab Redis cpu utilization too high (instance {{ $labels.instance }})
+          expr: |-
+            avg({__name__="aws_elasticache_cpuutilization_average",exported_job="aws_elasticache",job="cloudwatch-gitlab"}) > 40
+          for: 2m
+          labels:
+            component: gitlab
+            env: tools
+            severity: critical
+        - alert: Postgres cpu usage
+          annotations:
+            value: '{{ $value }}'
+            description: 'Gitlab Postgres cpu utilization ({{ $value }}) > 40 percent'
+            summary: Gitlab Postgres cpu utilization too high (instance {{ $labels.instance }})
+          expr: |-
+            {__name__="aws_rds_cpuutilization_maximum",exported_job="aws_rds",job="cloudwatch-gitlab"} > 40
+          for: 2m
+          labels:
+            component: gitlab
+            env: tools
+            severity: critical
+        - alert: Postgres memory usage
+          annotations:
+            value: '{{ $value }}'
+            description: 'Gitlab Postgres free memory ({{ $value }}) < 2 GiB'
+            summary: Gitlab Postgres memory utilization too high (instance {{ $labels.instance }})
+          expr: |-
+            {__name__="aws_rds_freeable_memory_average",exported_job="aws_rds",job="cloudwatch-gitlab"} / 1048576 < 2048
+          for: 2m
+          labels:
+            component: gitlab
+            env: tools
+            severity: critical
+        - alert: Redis memory usage
+          annotations:
+            value: '{{ $value }}'
+            description: 'Gitlab Redis free memory ({{ $value }}) < 2 GiB'
+            summary: Gitlab Redis memory utilization too high (instance {{ $labels.instance }})
+          expr: |-
+            avg({__name__="aws_elasticache_freeable_memory_average",exported_job="aws_elasticache",job="cloudwatch-gitlab"}) / 1048576 < 2048
+          for: 2m
+          labels:
+            component: gitlab
+            env: tools
+            severity: critical

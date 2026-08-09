@@ -1,0 +1,130 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMNodeScrape
+metadata:
+  name: kubelet
+  namespace: monitoring
+  labels:
+    app: kubelet
+    owner: devops
+    stream: devops
+    product: observability
+    env: ${env}
+    temporary: "false"
+    deleteAfter: "false"
+spec:
+  bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  honorLabels: true
+  interval: 30s
+  metricRelabelConfigs:
+    - action: labeldrop
+      regex: (uid)
+    - action: labeldrop
+      regex: (id|name)
+    - action: drop
+      regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count)
+      source_labels:
+        - __name__
+    - action: drop
+      regex: (kubelet_runtime_operations_duration_seconds_bucket|storage_operation_duration_seconds_bucket|kubernetes_feature_enabled|rest_client_rate_limiter_duration_seconds_bucket)
+      sourceLabels:
+        - __name__
+  relabelConfigs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - sourceLabels:
+        - __metrics_path__
+      targetLabel: metrics_path
+    - replacement: kubelet
+      targetLabel: job
+  scheme: https
+  scrapeTimeout: 5s
+  tlsConfig:
+    caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    insecureSkipVerify: true
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMNodeScrape
+metadata:
+  name: probes
+  namespace: monitoring
+  labels:
+    app: kubelet
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+spec:
+  bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  honorLabels: true
+  interval: 30s
+  metricRelabelConfigs:
+    - action: labeldrop
+      regex: (uid)
+    - action: labeldrop
+      regex: (id|name)
+    - action: drop
+      regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count|prober_probe_duration_seconds_bucket)
+      source_labels:
+        - __name__
+  path: /metrics/probes
+  relabelConfigs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - sourceLabels:
+        - __metrics_path__
+      targetLabel: metrics_path
+    - replacement: kubelet
+      targetLabel: job
+  scheme: https
+  scrapeTimeout: 5s
+  tlsConfig:
+    caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    insecureSkipVerify: true
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMNodeScrape
+metadata:
+  name: cadvisor
+  namespace: monitoring
+  labels:
+    app: kubelet
+    owner: devops
+    stream: devops
+    env: ${env}
+    product: observability
+    temporary: "false"
+    deleteAfter: "false"
+spec:
+  bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  honorLabels: true
+  interval: 30s
+  metricRelabelConfigs:
+    - action: labeldrop
+      regex: (uid)
+    - action: labeldrop
+      regex: (id|name)
+    - action: drop
+      regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count)
+      source_labels:
+        - __name__
+    - action: drop
+      regex: (container_tasks_state|container_memory_failures_total|container_blkio_device_usage_total)
+      source_labels:
+        - __name__
+  path: /metrics/cadvisor
+  relabelConfigs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - sourceLabels:
+        - __metrics_path__
+      targetLabel: metrics_path
+    - replacement: kubelet
+      targetLabel: job
+  scheme: https
+  scrapeTimeout: 5s
+  tlsConfig:
+    caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    insecureSkipVerify: true

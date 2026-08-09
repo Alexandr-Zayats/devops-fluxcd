@@ -1,0 +1,35 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  labels:
+    app: strapi
+  name: service-scrape-portal
+  namespace: monitoring
+spec:
+  endpoints:
+    - port: http
+      path: /metrics
+      targetPort: 1337
+      bearerTokenSecret:
+        key: ""
+      interval: 60s
+      metricRelabelConfigs:
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_pod_label_stream
+          targetLabel: stream
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_pod_label_owner
+          targetLabel: owner
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_pod_label_env
+          targetLabel: ${env}
+  namespaceSelector:
+    matchNames:
+      - portal
+  selector:
+    matchLabels:
+      app: strapi

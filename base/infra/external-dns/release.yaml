@@ -1,0 +1,47 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: kube-system
+spec:
+  targetNamespace: kube-system
+  releaseName: external-dns
+  chart:
+    spec:
+      chart: external-dns
+      version: "1.19.0"
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+        namespace: flux-system
+  interval: 10m
+  install:
+    remediation:
+      retries: 3
+    timeout: 5m
+  uninstall:
+    disableHooks: true
+    keepHistory: false
+  values:
+    domainFilters: ${private_zones}
+      #- ${env_dns_zone_name}
+      #- ${int_zone_name}
+    txtPrefix: ${eks_cluster_name}
+    txtOwnerId: ${eks_cluster_name}
+    registry: txt
+    policy: sync
+    recordTTL: 300    
+    provider: aws
+    extraArgs:
+      - ${route53_role_assume}
+    serviceAccount:
+      create: true
+      name: external-dns-shared
+    tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+        effect: NoSchedule
+      # - key: pool
+      #   value: infra
+      #   effect: NoSchedule

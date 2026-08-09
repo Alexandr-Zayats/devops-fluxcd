@@ -1,0 +1,13 @@
+---
+global:
+  defaultStorageClass: gp2
+  security:
+    allowInsecureImages: true
+controller:
+  replicaCount: 1
+broker:
+  replicaCount: 0
+image:
+  registry: docker.io
+  repository: bitnamilegacy/kafka
+  # tag:

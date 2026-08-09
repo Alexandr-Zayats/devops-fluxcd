@@ -1,0 +1,86 @@
+---
+
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: prometheus-elasticsearch-exporter
+spec:
+  releaseName: prometheus-elasticsearch-exporter
+  chart:
+    spec:
+      chart: prometheus-elasticsearch-exporter
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+      version: 6.7.3
+  interval: 1h0m0s
+  install:
+    remediation:
+      retries: 5
+  values:
+    envFromSecret: ''
+    # extraArgs:
+    #  - --es.ssl-skip-verify
+    log:
+      format: logfmt
+      level: info
+    extraEnvSecrets:
+      ES_PASSWORD:
+        secret: elasticsearch-es-elastic-user
+        key: elastic
+    env:
+      ES_URI: https://elastic:$(ES_PASSWORD)@elasticsearch-es-http.elastic-stack:9200
+    serviceMonitor:
+      ## If true, a ServiceMonitor CRD is created for a prometheus operator
+      ## https://github.com/coreos/prometheus-operator
+      ##
+      enabled: true
+      namespace: monitoring
+      labels:
+        app: prometheus-elasticsearch-exporter
+        release: kube-prometheus-stack
+      interval: 10s
+      jobLabel: ""
+      scrapeTimeout: 10s
+      scheme: http
+      relabelings: []
+      targetLabels: []
+      metricRelabelings: []
+      sampleLimit: 0
+
+    es:
+      uri: $(ES_URI)
+      aliases: true
+      ilm: true
+      sslSkipVerify: true
+    serviceAccount:
+      create: true
+    prometheusRule:
+      enabled: true
+      rules:
+        - record: elasticsearch_filesystem_data_used_percent
+          expr: |
+            100 * (elasticsearch_filesystem_data_size_bytes{service="{{ template "elasticsearch-exporter.fullname" . }}"}
+              - elasticsearch_filesystem_data_free_bytes{service="{{ template "elasticsearch-exporter.fullname" . }}"})
+              / elasticsearch_filesystem_data_size_bytes{service="{{ template "elasticsearch-exporter.fullname" . }}"}
+        - record: elasticsearch_filesystem_data_free_percent
+          expr: 100 - elasticsearch_filesystem_data_used_percent{service="{{ template "elasticsearch-exporter.fullname" . }}"}
+        - alert: ElasticsearchTooFewNodesRunning
+          expr: elasticsearch_cluster_health_number_of_nodes{service="{{ template "elasticsearch-exporter.fullname" . }}"} < 3
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            description: There are only {{ "{{ $value }}" }} < 3 ElasticSearch nodes running
+            summary: ElasticSearch running on less than 3 nodes
+        - alert: ElasticsearchHeapTooHigh
+          expr: |
+            elasticsearch_jvm_memory_used_bytes{service="{{ template "elasticsearch-exporter.fullname" . }}", area="heap"} / elasticsearch_jvm_memory_max_bytes{service="{{ template "elasticsearch-exporter.fullname" . }}", area="heap"}
+            > 0.9
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            description: The heap usage is over 90% for 15m
+            summary: ElasticSearch node {{ "{{ $labels.node }}" }} heap usage is high

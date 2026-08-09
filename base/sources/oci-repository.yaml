@@ -1,0 +1,44 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kyverno-controller
+  namespace: flux-system
+spec:
+  interval: 120m0s
+  provider: generic
+  url: oci://ghcr.io/kyverno/manifests/kyverno
+  ref:
+    tag: "v1.13.2"
+  verify:
+    provider: cosign
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: karpenter-crd
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  provider: generic
+  url: oci://public.ecr.aws/karpenter/karpenter-crd
+  ref:
+    tag: "1.8.6"
+  verify:
+    provider: cosign
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: karpenter
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  provider: generic
+  url: oci://public.ecr.aws/karpenter/karpenter
+  ref:
+    tag: "1.8.6"
+  verify:
+    provider: cosign

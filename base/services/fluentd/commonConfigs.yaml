@@ -1,0 +1,200 @@
+---
+# ES index template for ec2 logs
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-fluentd
+data:
+  .es_connect.conf: |-    
+    @log_level info
+
+    host "#{ENV['ES_HOST'] || 'elasticsearch-es-data.elastic-stack.svc.cluster.local'}"
+    port "#{ENV['ES_PORT'] || 9200}"
+    user "#{ENV['ES_USER'] || 'elastic'}"
+    password "#{ENV['elastic']}"
+    scheme 'https'
+    ssl_verify 'false'
+
+    reload_connections true
+    log_es_400_reason true
+    # # avoid 7.x errors
+    suppress_type_name true
+
+    # # setting sniffer class
+    sniffer_class_name Fluent::Plugin::ElasticsearchSimpleSniffer
+
+    logstash_format false
+    include_tag_key true
+    time_key time
+    include_timestamp true
+
+    # # Customizing index template
+    use_legacy_template false
+    template_overwrite true
+
+    rollover_index true
+    index_date_pattern ''
+    enable_ilm true
+
+    ilm_policy_overwrite true
+
+  .buffer.conf: |-
+      flush_mode interval
+      retry_type exponential_backoff
+      flush_thread_count 3
+      flush_interval 10s
+      retry_forever true
+      retry_max_interval 30
+      chunk_limit_size 8M
+      queue_limit_length 64
+      overflow_action block
+
+  .filters_k8s.conf: |-
+    <filter kubernetes.**>
+      @type kubernetes_metadata
+      #annotation_match [ "fluentd.+"]
+      #cache_size 10000
+      #de_dot false
+    </filter>
+
+    <filter kubernetes.**>
+      @type record_transformer
+      enable_ruby
+      <record>
+        env "#{ENV['FLUENT_ENV'] || 'main'}"
+        service ${record["kubernetes"]["labels"]["app.kubernetes.io/instance"]}
+      </record>
+    </filter>
+
+    <filter kubernetes.**>
+      @type record_transformer
+      enable_ruby
+      <record>
+        for_remove ${record["docker"].delete("container_id"); record["kubernetes"].delete("annotations"); record["kubernetes"].delete("master_url"); record["kubernetes"].delete("pod_id"); record["kubernetes"].delete("namespace_id"); record["kubernetes"].delete("container_image_id"); record["kubernetes"].delete("namespace_labels"); record["kubernetes"].delete("pod_ip"); record["kubernetes"].delete("labels"); }
+      </record>
+      remove_keys for_remove
+    </filter>
+
+  .dispatch_ec2.conf: |-
+    <match ec2.**>
+      @type detect_exceptions
+      @id ec2_detect_exceptions
+      languages ["java","python"]
+      multiline_flush_interval 0.1
+      remove_tag_prefix ec2
+    </match>
+
+  .dispatch_k8s.conf: |-
+    <match kubernetes.var.log.containers.**kube-logging**.log>
+      @type null
+    </match>
+    <match kubernetes.var.log.containers.**kube-system**.log>
+      @type null
+    </match>
+    <match kubernetes.var.log.containers.**monitoring**.log>
+      @type null
+    </match>
+    <match kubernetes.var.log.containers.**infra**.log>
+      @type null
+    </match>
+    <match kubernetes.var.log.containers.**elastic-stack**.log>
+      @type null
+    </match>
+    <match kubernetes.var.log.containers.**eck-stack**.log>
+      @type null
+    </match>
+
+    <filter **>
+      @type grep
+      <exclude>
+        key log
+        pattern ^\n$
+      </exclude>
+    </filter>
+
+    <match kubernetes.**>
+      @type detect_exceptions
+      @id k8s_detect_exceptions
+      languages ["java","python"]
+      multiline_flush_interval 0.1
+      remove_tag_prefix kubernetes
+    </match>
+
+  .source_forward.conf: |-
+    # TCP input to receive logs from the forwarders
+    <source>
+      @type forward
+      @label @ec2
+      bind 0.0.0.0
+      port 24225
+    </source>
+    <source>
+      @type forward
+      bind 0.0.0.0
+      port 24226
+    </source>
+
+  .forward_params.conf: |-
+    send_timeout 120s
+    recover_wait 20s
+    hard_timeout 120s
+    <server>
+      name "#{ENV['FS_NAME'] || 'fluentd-qa'}"
+      host "#{ENV['FS_HOST'] || 'fluent-qa.suntechinnovation.com'}"
+      port "#{ENV['FS_PORT'] || 24226}"
+      weight 60
+    </server>
+
+  .prefix_add.conf: |-
+    <filter **>
+      @type record_transformer
+      enable_ruby
+      <record>
+        prefix ${if record['env'].include? 'main'; record['kubernetes']['namespace_name']; else; record['env'] + "-" + record['kubernetes']['namespace_name'] end;}
+      </record>
+    </filter>
+
+  .source_logs.conf: |-
+    # TCP input to receive logs from tail
+    <source>
+      @type tail
+      path "#{ENV['SOURCE_LOGS'] || '/var/log/containers/*.log'}"
+      pos_file /var/log/containers.log.pos
+      exclude_path "#{ENV['EXLUDE_LOGS'] || '[ "/var/log/containers/styx*", "/var/log/containers/fluent*", "/var/log/containers/elast*", "/var/log/containers/mysql*" ]'}"
+
+      tag kubernetes.*
+      read_from_head true
+      <parse>
+        @type json_in_json
+        time_format %Y-%m-%d %H:%M:%S.%L # %Z 
+        time_key @timestamp
+      </parse>
+    </source>
+
+  .source_logs_multi.conf: |-
+    # TCP input to receive logs from tail
+    <source>
+      @type tail
+      path "#{ENV['SOURCE_LOGS'] || '/var/log/containers/*.log'}"
+      pos_file /var/log/containers.log.pos
+      exclude_path "#{ENV['EXLUDE_LOGS'] || '[ "/var/log/containers/styx*", "/var/log/containers/fluent*", "/var/log/containers/elast*", "/var/log/containers/mysql*" ]'}"
+
+      tag kubernetes.*
+      read_from_head true
+      <parse>
+        @type cri
+        <parse>
+          @type multi_format
+          <pattern>
+            format json
+            time_format %Y-%m-%d %H:%M:%S.%L
+            time_key @timestamp
+          </pattern>
+          <pattern>
+            # nginx logs format json
+            format json
+            time_format %Y-%m-%dT%H:%M:%S:%z
+          </pattern>
+        </parse>
+      </parse>
+    </source>

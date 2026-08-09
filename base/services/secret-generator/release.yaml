@@ -1,0 +1,27 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: secret-generator
+  namespace: flux-system
+spec:
+  interval: 60m
+  releaseName: secret-generator
+  uninstall:
+    disableHooks: true
+    keepHistory: false
+  chart:
+    spec:
+      chart: secret-generator
+      sourceRef:
+        kind: HelmRepository
+        name: secret-generator
+        namespace: flux-system
+      #version: 20.6.2
+  values:
+    nodeSelector:
+      kubernetes.io/arch: amd64
+    tolerations:
+      - key: pool
+        value: infra
+        effect: NoSchedule

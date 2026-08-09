@@ -1,0 +1,97 @@
+image:
+  repository: sonarqube
+# tag: ""
+
+community:
+  enabled: true
+  buildNumber: "25.11.0.114957"
+
+monitoringPasscode: 'SuperSecureMonitoringPass123!'
+
+jvmOpts: '-Dsonar.web.http.maxRequestSize=104857600'
+
+deploymentType: Deployment
+replicaCount: 1
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: gp3-5k-250-ext4
+
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: 1000m
+
+nodeSelector:
+  kubernetes.io/arch: arm64
+tolerations:
+  - key: pool
+    value: sonar
+    effect: NoSchedule
+
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: true
+  ingressClassName: alb
+  hosts:
+    - name: "sonar.${private_domain}"
+      path: /*
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    alb.ingress.kubernetes.io/certificate-arn: ${tools_cert_arn}
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/group.name: demo-platform-private
+    alb.ingress.kubernetes.io/group.order: "100"
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+
+postgresql:
+  enabled: true
+  postgresqlUsername: sonar
+  postgresqlPassword: sonarpass
+  postgresqlDatabase: sonarqube
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql 
+    tag: 17.5.0-debian-12-r20
+  global:
+    defaultStorageClass: gp3-5k-250-ext4
+  persistence:
+    storageClass: gp3-5k-250-ext4
+
+  primary:
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    tolerations:
+      - key: pool
+        value: sonar
+        effect: NoSchedule
+  readReplicas:
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    tolerations:
+      - key: pool
+        value: sonar
+        effect: NoSchedule
+
+plugins:
+  install:
+    - 'https://github.com/sonar-auth-oidc/sonar-auth-oidc/releases/download/v3.0.0/sonar-auth-oidc-plugin-3.0.0.jar'
+
+sonarProperties:
+  sonar.core.serverBaseURL: 'https://sonar.${private_domain}'
+  sonar.auth.oidc.enabled: 'true'
+  sonar.auth.oidc.issuerUri: 'https://accounts.google.com'
+  sonar.auth.oidc.scopes: 'openid email profile'
+  sonar.auth.oidc.allowUsersToSignUp: 'true'
+  sonar.auth.oidc.loginButtonText: 'Log in with Google'
+  sonar.auth.oidc.loginStrategy: 'Email'
+
+sonarSecretProperties: 'sonarqube-oidc-secret'

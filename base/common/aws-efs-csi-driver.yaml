@@ -1,0 +1,30 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: aws-efs-csi-driver
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  wait: true
+  prune: true
+  dependsOn:
+    - name: node-pool.infra
+  sourceRef:
+    kind: GitRepository
+    name: base
+  path: infra/aws-efs-csi-driver
+  targetNamespace: kube-system
+  force: true
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: aws-efs-csi-driver
+      namespace: kube-system
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: terraform-to-flux-bridge
+        optional: true

@@ -1,0 +1,15 @@
+---
+resources:
+  - aws-yace-exporter.yaml
+  - aws-cni.yaml
+  - apiserver.yaml
+  - coredns.yaml
+  - kube-controller-manager.yaml
+  - kube-proxy.yaml
+  - kube-scheduler.yaml
+  - kubelet.yaml
+  - fluxcd.yaml
+  # - strapi-service-scrape.yaml
+  - json_exporter.yaml
+  #- aws-cloudwatch.yaml
+  - kube-state-metrics.yaml

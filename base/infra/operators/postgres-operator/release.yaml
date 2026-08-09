@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: postgres-operator
+spec:
+  releaseName: postgres-operator
+  chart:
+    spec:
+      chart: postgres-operator
+      sourceRef:
+        kind: HelmRepository
+        name: postgres-operator
+        namespace: flux-system
+      version: "1.8.2"
+  interval: 1h0m0s
+  install:
+    remediation:
+      retries: 3
+  values:
+    configPostgresPodResources:
+        default_cpu_limit: "1"
+        default_cpu_request: 100m
+        default_memory_limit: 1024Mi
+        default_memory_request: 100Mi
+        min_cpu_limit: 1024m
+        min_memory_limit: 1024Mi
+    configKubernetes:
+      watched_namespace: "db"

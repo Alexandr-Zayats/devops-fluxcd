@@ -1,0 +1,8 @@
+---
+apiVersion: awspca.cert-manager.io/v1beta1
+kind: AWSPCAClusterIssuer
+metadata:
+  name: aws-private-ca
+spec:
+  arn: ${private_ca_arn}
+  region: ${region}

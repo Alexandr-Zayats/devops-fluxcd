@@ -1,0 +1,34 @@
+# this ClusterPolicy will create a PodDisruptionBudget resource 
+# for existing or new Deployments. Note that use of this policy 
+# may require granting of additional permissions as explained above. 
+# See the documentation https://kyverno.io/docs/installation/customization/#customizing-permissions
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: create-default-pdb
+spec:
+  rules:
+  - name: create-default-pdb
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment
+    exclude:
+      resources:
+        namespaces:
+        - local-path-storage
+    generate:
+      generateExisting: true
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      name: "{{request.object.metadata.name}}-default-pdb"
+      namespace: "{{request.object.metadata.namespace}}"
+      synchronize: true
+      data:
+        spec:
+          minAvailable: 1
+          selector:
+            matchLabels:
+              "{{request.object.metadata.labels}}"

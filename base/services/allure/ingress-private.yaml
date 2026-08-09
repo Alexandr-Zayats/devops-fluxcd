@@ -1,0 +1,47 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: allure-ingress-service-load-balance-privater
+  annotations:
+    #https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md#custom-max-body-size
+    nginx.ingress.kubernetes.io/proxy-body-size: "500m"
+    #https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md#rewrite
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: private-shared
+  #tls:
+  #  - secretName: my-domain-com-tls
+  #    hosts:
+  #      - my-domain.com
+  rules:
+    - host: tests.tools.us-east-1.example-org.priv
+      http:
+        paths:
+          # - path: /allure-api
+          - path: /allure-api/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 6060
+          # Share your configuration if you have a better way to handle a static website
+
+          # - path: /allure-ui
+          - path: /allure-ui/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 7070
+
+          # - path: /
+          - path: /?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 7070

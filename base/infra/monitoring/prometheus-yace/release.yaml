@@ -1,0 +1,184 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: prometheus-yace
+  namespace: monitoring
+spec:
+  interval: 10m
+  timeout: 15m
+  chart:
+    spec:
+      chart: prometheus-yet-another-cloudwatch-exporter
+      version: "0.40.2"
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 1
+    timeout: 10m
+  upgrade:
+    remediation:
+      retries: 1
+    timeout: 10m
+    cleanupOnFail: true
+  values:
+    fullnameOverride: prometheus-yace
+    replicaCount: 1
+    serviceAccount:
+      create: true
+      name: prometheus-yace
+    service:
+      type: ClusterIP
+      port: 5000
+    tolerations:
+      - key: pool
+        operator: Equal
+        value: monitoring
+        effect: NoSchedule
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    config: |
+      apiVersion: v1alpha1
+      sts-region: us-east-1
+
+      discovery:
+        jobs:
+          # ======================
+          # EC2 INSTANCES
+          # ======================
+          - type: AWS/EC2
+            regions:
+              - us-east-1
+            roles:
+              - roleArn: arn:aws:iam::664418984260:role/demo-platform-prod-common
+              - roleArn: arn:aws:iam::585768168634:role/demo-platform-stg-common
+            period: 300
+            length: 600
+            dimensionNameRequirements:
+              - InstanceId
+            metrics:
+              - name: CPUUtilization
+                statistics: ["Average"]
+              - name: CPUCreditBalance
+                statistics: ["Average"]
+              - name: CPUCreditUsage
+                statistics: ["Average"]
+              - name: CPUSurplusCreditBalance
+                statistics: ["Average"]
+              - name: CPUSurplusCreditsCharged
+                statistics: ["Average"]
+              - name: MemoryUtilization
+                statistics: ["Average"]
+              - name: NetworkIn
+                statistics: ["Sum"]
+              - name: NetworkOut
+                statistics: ["Sum"]
+              - name: DiskReadOps
+                statistics: ["Sum"]
+              - name: DiskWriteOps
+                statistics: ["Sum"]
+              - name: DiskReadBytes
+                statistics: ["Sum"]
+              - name: DiskWriteBytes
+                statistics: ["Sum"]
+              - name: StatusCheckFailed
+                statistics: ["Maximum"]
+              - name: StatusCheckFailed_Instance
+                statistics: ["Maximum"]
+              - name: StatusCheckFailed_System
+                statistics: ["Maximum"]
+
+          # ======================
+          # RDS INSTANCES
+          # ======================
+          - type: AWS/RDS
+            regions:
+              - us-east-1
+            roles:
+              - roleArn: arn:aws:iam::664418984260:role/demo-platform-prod-common
+              - roleArn: arn:aws:iam::585768168634:role/demo-platform-stg-common
+            period: 300
+            delay: 300
+            metrics:
+              - name: CPUUtilization
+                statistics: ["Average"]
+              - name: FreeStorageSpace
+                statistics: ["Minimum"]
+              - name: FreeableMemory
+                statistics: ["Average"]
+              - name: DatabaseConnections
+                statistics: ["Average"]
+              - name: ReadIOPS
+                statistics: ["Average"]
+              - name: WriteIOPS
+                statistics: ["Average"]
+              - name: ReadLatency
+                statistics: ["Average"]
+              - name: WriteLatency
+                statistics: ["Average"]
+              - name: DiskQueueDepth
+                statistics: ["Average"]
+
+          # ======================
+          # ELASTICACHE (REDIS / MEMCACHED)
+          # ======================
+          - type: AWS/ElastiCache
+            regions:
+              - us-east-1
+            roles:
+              - roleArn: arn:aws:iam::664418984260:role/demo-platform-prod-common
+              - roleArn: arn:aws:iam::585768168634:role/demo-platform-stg-common
+            period: 300
+            delay: 300
+            metrics:
+              - name: CPUUtilization
+                statistics: ["Average"]
+              - name: CurrConnections
+                statistics: ["Sum"]
+              - name: CacheHits
+                statistics: ["Sum"]
+              - name: CacheMisses
+                statistics: ["Sum"]
+              - name: Evictions
+                statistics: ["Sum"]
+              - name: CurrItems
+                statistics: ["Sum"]
+              - name: BytesUsedForCache
+                statistics: ["Average"]
+
+          # ======================
+          # AMAZON MQ (RABBITMQ)
+          # ======================
+          - type: AWS/AmazonMQ
+            regions:
+              - us-east-1
+            roles:
+              - roleArn: arn:aws:iam::664418984260:role/demo-platform-prod-common
+              - roleArn: arn:aws:iam::585768168634:role/demo-platform-stg-common
+            period: 300
+            delay: 300
+            metrics:
+              - name: MessageCount
+                statistics: ["Average"]
+              - name: ConsumerCount
+                statistics: ["Average"]
+              - name: QueueCount
+                statistics: ["Average"]
+              - name: ConnectionCount
+                statistics: ["Average"]
+              - name: BrokerCPUUtilization
+                statistics: ["Average"]
+              - name: BrokerMemoryUtilization
+                statistics: ["Average"]
+              - name: NetworkIn
+                statistics: ["Sum"]
+              - name: NetworkOut
+                statistics: ["Sum"]

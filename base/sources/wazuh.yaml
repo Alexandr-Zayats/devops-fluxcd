@@ -1,0 +1,19 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: wazuh
+  namespace: flux-system
+spec:
+  interval: 10h
+  url: https://promptlylabs.github.io/wazuh-helm-chart/
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: avisto
+  namespace: flux-system
+spec:
+  interval: 10h
+  url: https://avistotelecom.github.io/charts

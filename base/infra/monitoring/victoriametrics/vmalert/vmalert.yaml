@@ -1,0 +1,64 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  name: vmalert-persistent
+spec:
+  nodeSelector:
+    kubernetes.io/arch: arm64
+  tolerations:
+    - key: pool
+      value: monitoring
+      operator: Equal
+      effect: NoSchedule
+  podMetadata:
+    labels:
+      owner: devops
+      stream: devops
+      env: ${env}
+      product: observability
+      temporary: "false"
+      deleteAfter: "false"
+      app: vmalert
+  selectAllByDefault: true
+  ruleNamespaceSelector: {}
+  ruleSelector: {}
+  #  matchExpressions:
+  #    - key: vmrules
+  #      operator: Exists
+
+  replicaCount: 1
+  image:
+    repository: victoriametrics/vmalert
+    tag: v1.140.0
+    pullPolicy: IfNotPresent
+  configReloaderImage: victoriametrics/operator:config-reloader-v0.69.0
+  logFormat: json
+  logLevel: INFO
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - vmalert
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 500m
+      memory: 2Gi
+  datasource:
+    url: "http://vmselect-vmcluster-persistent:8481/select/0/prometheus"
+  remoteWrite:
+    url: "http://vminsert-vmcluster-persistent:8480/insert/0/prometheus"
+  remoteRead:
+    url: "http://vmselect-vmcluster-persistent:8481/select/0/prometheus"
+  notifiers:
+    - url: "http://vmalertmanager-vmcluster-persistent.monitoring.svc.cluster.local:9093"

@@ -1,0 +1,45 @@
+# The below policy clones Secrets and ConfigMaps from the staging 
+# Namespace which carry the label allowedToBeCloned="true".
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: ecr-credentials
+  annotations:
+    policies.kyverno.io/title: Sync Secrets
+    policies.kyverno.io/category: Sample
+    policies.kyverno.io/subject: Secret
+    policies.kyverno.io/minversion: 1.6.0
+    policies.kyverno.io/description: >-
+      Secrets like registry credentials often need to exist in multiple
+      Namespaces so Pods there have access. Manually duplicating those Secrets
+      is time consuming and error prone. This policy will copy a
+      Secret called `ecr-credentials` which exists in the `flux-system` Namespace to
+      new Namespaces when they are created. It will also push updates to
+      the copied Secrets should the source Secret be changed.
+spec:
+  rules:
+  - name: sync-secret
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+    generate:
+      generateExisting: false
+      synchronize: true
+      apiVersion: v1
+      kind: Secret
+      # name: services
+      namespace: "{{request.object.metadata.name}}"
+      # namespace: flux-system
+      # clone:
+      #  namespace: flux-system
+      #  name: services
+      cloneList:
+        kinds:
+          - v1/Secret
+        namespace: flux-system
+        selector:
+          matchLabels:
+            service: ecr-credentials

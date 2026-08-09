@@ -1,0 +1,27 @@
+{
+  "index_patterns": ["ec2-<<TAG>>-*"],
+  "template": {
+    "settings": {
+      "index": {
+        "lifecycle": {
+          "name": "ec2-policy-geo",
+          "rollover_alias": "ec2-<<TAG>>"
+        },
+        "number_of_shards": "<<shard>>",
+        "number_of_replicas": "<<replica>>",
+        "default_pipeline": "geoip"
+      }
+    },
+    "mappings": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "location": {
+              "type": "geo_point"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,880 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "red",
+        "name": "New annotation"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 21,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "(count(kube_deployment_status_replicas_ready{namespace=~\"$${env}-(api|cms|frontend|services)\"} >= kube_deployment_spec_replicas{namespace=~\"$${env}-(api|cms|frontend|services)\"}) or vector(0)) + (count(kube_statefulset_status_replicas_ready{namespace=~\"$${env}-(api|cms|frontend|services)\"} >= kube_statefulset_replicas{namespace=~\"$${env}-(api|cms|frontend|services)\"}) or vector(0))",
+          "instant": true,
+          "legendFormat": "OK",
+          "refId": "A"
+        }
+      ],
+      "title": "Services OK",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "(count(kube_deployment_status_replicas_ready{namespace=~\"$${env}-(api|cms|frontend|services)\"} < kube_deployment_spec_replicas{namespace=~\"$${env}-(api|cms|frontend|services)\"}) or vector(0)) + (count(kube_statefulset_status_replicas_ready{namespace=~\"$${env}-(api|cms|frontend|services)\"} < kube_statefulset_replicas{namespace=~\"$${env}-(api|cms|frontend|services)\"}) or vector(0))",
+          "instant": true,
+          "legendFormat": "FAILED",
+          "refId": "A"
+        }
+      ],
+      "title": "Services FAILED",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=~\"$${env}-(api|cms|frontend|services)\"}[1h])) or vector(0)",
+          "instant": true,
+          "legendFormat": "Restarts",
+          "refId": "A"
+        }
+      ],
+      "title": "Pod Restarts (1h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "count(count by (namespace) (kube_pod_info{namespace=~\"$${env}-(api|cms|frontend|services)\"}))",
+          "instant": true,
+          "legendFormat": "Namespaces",
+          "refId": "A"
+        }
+      ],
+      "title": "Namespaces",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "custom": {
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NAMESPACE"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "NAMESPACE"
+              },
+              {
+                "id": "custom.width",
+                "value": 209
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "light-blue",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "SERVICE"
+              },
+              {
+                "id": "custom.width",
+                "value": 271
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #READY"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "READY"
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #TOTAL"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "TOTAL"
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #AGE"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "AGE"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "unit",
+                "value": "dtdurations"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #RESTARTS"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "RESTARTS 1h"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #STATUS"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "STATUS"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "FAILED"
+                      },
+                      "1": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "OK"
+                      },
+                      "2": {
+                        "color": "green",
+                        "index": 2,
+                        "text": "Completed"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 36,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(\n  kube_deployment_status_replicas_ready{\n    namespace=~\"$${env}-(api|cms|frontend|services)\",\n    deployment!~\".*job.*|.*prometheus.*|.*kube-state.*\"\n  },\n  \"service\", \"$1\", \"deployment\", \"(.*)\"\n) or label_replace(\n  kube_statefulset_status_replicas_ready{\n    namespace=~\"$${env}-(api|cms|frontend|services)\"\n  },\n  \"service\", \"$1\", \"statefulset\", \"(.*)\"\n)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "READY"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(\n  kube_deployment_spec_replicas{\n    namespace=~\"$${env}-(api|cms|frontend|services)\",\n    deployment!~\".*job.*|.*prometheus.*|.*kube-state.*\"\n  },\n  \"service\", \"$1\", \"deployment\", \"(.*)\"\n) or label_replace(\n  kube_statefulset_replicas{\n    namespace=~\"$${env}-(api|cms|frontend|services)\"\n  },\n  \"service\", \"$1\", \"statefulset\", \"(.*)\"\n)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "TOTAL"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "(\n  label_replace(\n    kube_deployment_status_replicas_ready{namespace=~\"$${env}-(api|cms|frontend|services)\",deployment!~\".*job.*|.*prometheus.*|.*kube-state.*\"},\n    \"service\", \"$1\", \"deployment\", \"(.*)\"\n  ) >= bool label_replace(\n    kube_deployment_spec_replicas{namespace=~\"$${env}-(api|cms|frontend|services)\",deployment!~\".*job.*|.*prometheus.*|.*kube-state.*\"},\n    \"service\", \"$1\", \"deployment\", \"(.*)\"\n  )\n) * on(namespace, service) group_left() (\n  label_replace(\n    kube_deployment_spec_replicas{namespace=~\"$${env}-(api|cms|frontend|services)\",deployment!~\".*job.*|.*prometheus.*|.*kube-state.*\"} > bool 0,\n    \"service\", \"$1\", \"deployment\", \"(.*)\"\n  )\n)\nor\n(\n  label_replace(\n    kube_statefulset_status_replicas_ready{namespace=~\"$${env}-(api|cms|frontend|services)\"},\n    \"service\", \"$1\", \"statefulset\", \"(.*)\"\n  ) >= bool label_replace(\n    kube_statefulset_replicas{namespace=~\"$${env}-(api|cms|frontend|services)\"},\n    \"service\", \"$1\", \"statefulset\", \"(.*)\"\n  )\n) * on(namespace, service) group_left() (\n  label_replace(\n    kube_statefulset_replicas{namespace=~\"$${env}-(api|cms|frontend|services)\"} > bool 0,\n    \"service\", \"$1\", \"statefulset\", \"(.*)\"\n  )\n)\nor\nmax by (namespace, service) (\n  label_replace(\n    kube_pod_status_phase{namespace=~\"$${env}-(api|cms|frontend|services)\", phase=\"Succeeded\"},\n    \"service\", \"$1\", \"pod\",\n    \"^([a-z0-9][a-z0-9.-]+[a-z0-9])-[0-9]+-[a-z0-9]+$\"\n  )\n) * 2",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "STATUS"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "(\n  max by (namespace, service) (\n    label_replace(\n      time() - kube_pod_start_time{\n        namespace=~\"$${env}-(api|cms|frontend|services)\",\n        pod!~\".*prometheus.*|.*kube-state.*|.*migration.*|.*job.*\"\n      },\n      \"service\", \"$1\", \"pod\",\n      \"^([a-z0-9][a-z0-9.-]+[a-z0-9])-[a-z0-9]{5,10}-[a-z0-9]{5}$\"\n    )\n  ) > 0\n) or (\n  max by (namespace, service) (\n    label_replace(\n      time() - kube_pod_start_time{\n        namespace=~\"$${env}-(api|cms|frontend|services)\",\n        pod!~\".*prometheus.*|.*kube-state.*|.*migration.*|.*job.*\"\n      },\n      \"service\", \"$1\", \"pod\",\n      \"^([a-z0-9][a-z0-9-]+)-[0-9]+$\"\n    )\n  ) > 0\n) or (\n  max by (namespace, service) (\n    label_replace(\n      time() - kube_pod_start_time{\n        namespace=~\"$${env}-(api|cms|frontend|services)\",\n        pod!~\".*prometheus.*|.*kube-state.*|.*migration.*|.*job.*\"\n      },\n      \"service\", \"$1\", \"pod\",\n      \"^([a-z0-9][a-z0-9.-]+[a-z0-9])-[0-9]+-[a-z0-9]+$\"\n    )\n  ) > 0\n)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "AGE"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (namespace, service) (\n  label_replace(\n    increase(\n      kube_pod_container_status_restarts_total{\n        namespace=~\"$${env}-(api|cms|frontend|services)\",\n        pod!~\".*prometheus.*|.*kube-state.*|.*migration.*|.*job.*\"\n      }[1h]\n    ),\n    \"service\", \"$1\", \"pod\",\n    \"^([a-z0-9][a-z0-9.-]+[a-z0-9])-[a-z0-9]{5,10}-[a-z0-9]{5}$\"\n  )\n) > -1\nor\nsum by (namespace, service) (\n  label_replace(\n    increase(\n      kube_pod_container_status_restarts_total{\n        namespace=~\"$${env}-(api|cms|frontend|services)\",\n        pod!~\".*prometheus.*|.*kube-state.*|.*migration.*|.*job.*\"\n      }[1h]\n    ),\n    \"service\", \"$1\", \"pod\",\n    \"^([a-z0-9][a-z0-9-]+)-[0-9]+$\"\n  )\n) > -1\nor\nsum by (namespace, service) (\n  label_replace(\n    increase(\n      kube_pod_container_status_restarts_total{\n        namespace=~\"$${env}-(api|cms|frontend|services)\",\n        pod!~\".*prometheus.*|.*kube-state.*|.*migration.*|.*job.*\"\n      }[1h]\n    ),\n    \"service\", \"$1\", \"pod\",\n    \"^([a-z0-9][a-z0-9.-]+[a-z0-9])-[0-9]+-[a-z0-9]+$\"\n  )\n) > -1",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "RESTARTS"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "(\n  label_replace(\n    kube_deployment_spec_replicas{\n      namespace=~\"$${env}-api\",\n      deployment!~\".*job.*|.*prometheus.*|.*kube-state.*\"\n    } * 0 + 1,\n    \"service\", \"$1\", \"deployment\", \"(.*)\"\n  )\n  or\n  label_replace(\n    kube_statefulset_replicas{namespace=~\"$${env}-api\"} * 0 + 1,\n    \"service\", \"$1\", \"statefulset\", \"(.*)\"\n  )\n)\nor\n(\n  label_replace(\n    kube_deployment_spec_replicas{\n      namespace=~\"$${env}-frontend\",\n      deployment!~\".*job.*|.*prometheus.*|.*kube-state.*\"\n    } * 0 + 2,\n    \"service\", \"$1\", \"deployment\", \"(.*)\"\n  )\n  or\n  label_replace(\n    kube_statefulset_replicas{namespace=~\"$${env}-frontend\"} * 0 + 2,\n    \"service\", \"$1\", \"statefulset\", \"(.*)\"\n  )\n)\nor\n(\n  label_replace(\n    kube_deployment_spec_replicas{\n      namespace=~\"$${env}-cms\",\n      deployment!~\".*job.*|.*prometheus.*|.*kube-state.*\"\n    } * 0 + 3,\n    \"service\", \"$1\", \"deployment\", \"(.*)\"\n  )\n  or\n  label_replace(\n    kube_statefulset_replicas{namespace=~\"$${env}-cms\"} * 0 + 3,\n    \"service\", \"$1\", \"statefulset\", \"(.*)\"\n  )\n  or\n  max by (namespace, service) (\n    label_replace(\n      kube_pod_status_phase{namespace=~\"$${env}-cms\", phase=\"Succeeded\"} * 0 + 3,\n      \"service\", \"$1\", \"pod\",\n      \"^([a-z0-9][a-z0-9.-]+[a-z0-9])-[0-9]+-[a-z0-9]+$\"\n    )\n  )\n)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "ORDER"
+        }
+      ],
+      "title": "Services",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "service",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "namespace",
+                "namespace 2",
+                "namespace 3",
+                "namespace 4",
+                "namespace 5",
+                "service",
+                "Value #READY",
+                "Value #TOTAL",
+                "Value #STATUS",
+                "Value #AGE",
+                "Value #RESTARTS",
+                "Value #ORDER"
+              ]
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "NAMESPACE",
+            "mode": "reduceRow",
+            "reduce": {
+              "include": [
+                "namespace",
+                "namespace 2",
+                "namespace 3",
+                "namespace 4",
+                "namespace 5"
+              ],
+              "reducer": "lastNotNull"
+            },
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "equal",
+                  "options": {
+                    "value": ""
+                  }
+                },
+                "fieldName": "service"
+              }
+            ],
+            "match": "all",
+            "type": "exclude"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "service"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "regex",
+                  "options": {
+                    "value": ".*prometheus.*|.*kube-state.*|.*migration.*|^job\\..*|.*-job$|.*job-.*"
+                  }
+                },
+                "fieldName": "service"
+              }
+            ],
+            "match": "all",
+            "type": "exclude"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "greater",
+                  "options": {
+                    "value": 0
+                  }
+                },
+                "fieldName": "Value #TOTAL"
+              },
+              {
+                "config": {
+                  "id": "greaterOrEqual",
+                  "options": {
+                    "value": 2
+                  }
+                },
+                "fieldName": "Value #STATUS"
+              }
+            ],
+            "match": "any",
+            "type": "include"
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": false,
+                "field": "Value #ORDER"
+              },
+              {
+                "desc": false,
+                "field": "service"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Value #ORDER": true,
+              "namespace": true,
+              "namespace 2": true,
+              "namespace 3": true,
+              "namespace 4": true,
+              "namespace 5": true
+            },
+            "includeByName": {},
+            "indexByName": {
+              "NAMESPACE": 0,
+              "Value #AGE": 4,
+              "Value #ORDER": 7,
+              "Value #READY": 2,
+              "Value #RESTARTS": 5,
+              "Value #STATUS": 6,
+              "Value #TOTAL": 3,
+              "service": 1
+            },
+            "renameByName": {
+              "Value #AGE": "AGE",
+              "Value #READY": "READY",
+              "Value #RESTARTS": "RESTARTS 1h",
+              "Value #STATUS": "STATUS",
+              "Value #TOTAL": "TOTAL",
+              "service": "SERVICE"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "schemaVersion": 40,
+  "tags": [
+    "environment"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "dev",
+          "value": "dev"
+        },
+        "definition": "label_values(kube_pod_info{namespace=~\".*-api\"},namespace)",
+        "includeAll": false,
+        "label": "Environment",
+        "name": "env",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(kube_pod_info{namespace=~\".*-api\"},namespace)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "(dev|test|kan-[0-9]+)-api",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Environment Details",
+  "uid": "efjr0vrx7fqpsf",
+  "version": 37,
+  "weekStart": ""
+}

@@ -1,0 +1,25 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: json-exporter
+  namespace: monitoring
+  labels:
+    vm-monitoring: true
+    app: json-exporter
+    owner: devops
+    stream: devops
+    env: ${env}
+    vmservicescrape: json-exporter
+    product: observability
+spec:
+  endpoints:
+    - port: http
+      scheme: http
+      interval: 60s
+  namespaceSelector:
+    matchNames:
+      - 'monitoring'
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: json-exporter

@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wireguard
+  namespace: wireguard
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+  #  service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    # service.beta.kubernetes.io/aws-load-balancer-arn: 'arn:aws:elasticloadbalancing:us-east-1:000000000000:loadbalancer/net/public-shared-nginx-common/ca9d334c09082eec'
+spec:
+  type: LoadBalancer
+  loadBalancerClass: public-shared
+  ports:
+    - name: wireguard
+      port: 443
+      targetPort: 51820
+      protocol: UDP
+  selector:
+    app: wireguard

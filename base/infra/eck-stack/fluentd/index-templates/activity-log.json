@@ -1,0 +1,15 @@
+{
+  "index_patterns": ["activity-log-<<TAG>>-*"],
+  "template": {
+    "settings": {
+      "index": {
+        "lifecycle": {
+          "name": "30-days@lifecycle",
+          "rollover_alias": "activity-log-<<TAG>>"
+        },
+        "number_of_shards": "<<shard>>",
+        "number_of_replicas": "<<replica>>"
+      }
+    }
+  }
+}

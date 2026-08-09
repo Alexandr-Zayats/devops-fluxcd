@@ -1,0 +1,21 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: aws-privateca-issuer
+  namespace: flux-system
+spec:
+  interval: 10m
+  releaseName: aws-privateca-issuer
+  chart:
+    spec:
+      chart: aws-privateca-issuer
+      sourceRef:
+        kind: HelmRepository
+        name: awspca
+        namespace: flux-system
+      #version: 12.2.4
+  valuesFrom:
+    - kind: ConfigMap
+      name: awsca-values
+      valuesKey: values.yaml

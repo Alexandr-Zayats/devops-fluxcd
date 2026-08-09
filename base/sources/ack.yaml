@@ -1,0 +1,10 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: ack
+  namespace: flux-system
+spec:
+  type: oci
+  interval: 12h
+  url: oci://public.ecr.aws/aws-controllers-k8s

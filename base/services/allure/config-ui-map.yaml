@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: allure-config-ui-map
+data:
+  ALLURE_DOCKER_PUBLIC_API_URL: 'https://tests.common.demo-platform.ca'
+  ALLURE_DOCKER_PUBLIC_API_URL_PREFIX: '/allure-api'
+  URL_PREFIX: '/allure-ui'
+
+  ALLURE_ENDPOINT: 'https://example-org.testops.cloud/'
+  ALLURE_PROJECT_ID: '67'
+  ALLURE_RESULTS: 'allure_results'
+  ALLURE_LAUNCH_NAME: 'Run from CI GitLab $(date "+%Y-%m-%d %H:%M:%S")'
+  ALLURE_REPORT_DIR: 'public/allure-report'
+  ENVIRONMENT: 'STAGE'

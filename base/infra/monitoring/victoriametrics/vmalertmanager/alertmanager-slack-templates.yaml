@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-slack-templates
+  namespace: monitoring
+data:
+  alertmanager-slack-templates.tmpl: |-
+    {{ define "__alert_severity_prefix_title" -}}
+        {{ if ne .Status "firing" -}}
+        :very_nice:
+        {{- else if eq .CommonLabels.severity "critical" -}}
+        :fire:
+        {{- else if eq .CommonLabels.severity "warning" -}}
+        :warning:
+        {{- else if eq .CommonLabels.severity "info" -}}
+        :information_source:
+        {{- else -}}
+        :question:
+        {{- end }}
+    {{- end }}
+
+    {{/* First line of Slack alerts */}}
+    {{ define "slack.demo-platform.title" -}}
+        [{{ .Status | toUpper -}}
+        {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{- end -}}
+        ] {{ template "__alert_severity_prefix_title" . }} {{ .CommonLabels.alertname }}
+    {{- end }}
+
+    {{/* The test to display in the alert */}}
+    {{ define "slack.demo-platform.text" -}}
+        *Alert details*:
+        {{ range .Alerts -}}
+          *Description:* {{ .Annotations.description }}
+          *Details:*
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+          {{ end }}
+    {{- end }}

@@ -1,0 +1,68 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: allure
+  annotations:
+    alb.ingress.kubernetes.io/group.name: ${group_name}
+    alb.ingress.kubernetes.io/scheme: ${scheme}
+    alb.ingress.kubernetes.io/group.name: apps-public  # {{ .Values.ingress.group }}
+    kubernetes.io/ingress.class: 'alb'
+    alb.ingress.kubernetes.io/certificate-arn:  ${public_ingress_controller_certs}
+    alb.ingress.kubernetes.io/target-type: 'ip'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}, {"HTTP": 80}]'
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type":"redirect","RedirectConfig":{"Protocol":"HTTPS","Port":"443","StatusCode":"HTTP_301"}}'
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+    - host: tests.common.demo-platform.ca
+      http:
+        paths:
+          - path: /allure-api/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 6060
+          - path: /allure-ui/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 7070
+
+          - path: /?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 7070
+
+    - host: tests-tools.example-org.ca
+      http:
+        paths:
+          - path: /allure-api/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 6060
+          - path: /allure-ui/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 7070
+          - path: /?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: allure-service-load-balancer
+                port:
+                  number: 7070

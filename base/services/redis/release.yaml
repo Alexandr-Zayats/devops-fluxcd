@@ -1,0 +1,36 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  # name: redis-cluster
+  name: ${env}-${app}-redis
+spec:
+  interval: 10m
+  releaseName: redis
+  chart:
+    spec:
+      chart: redis
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami-oci
+        namespace: flux-system
+      version: 20.6.2
+  values:
+    master:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: pool
+          value: infra
+          effect: NoSchedule
+    replica:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: pool
+          value: infra
+          effect: NoSchedule
+  valuesFrom:
+    - kind: ConfigMap
+      name: redis-values
+      valuesKey: values.yaml

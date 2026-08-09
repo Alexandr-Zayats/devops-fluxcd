@@ -1,0 +1,10 @@
+image:
+  registry: docker.io
+  repository: arush/kubernetes-secret-generator
+  tag: latest
+nodeSelector:
+  kubernetes.io/arch: arm64
+tolerations:
+  - key: pool
+    value: infra
+    effect: NoSchedule

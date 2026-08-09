@@ -1,0 +1,35 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: flux2
+  namespace: flux-system
+spec:
+  interval: 60m
+  releaseName: flux2
+  targetNamespace: flux-system
+  dependsOn:
+    - name: karpenter
+      namespace: kube-system
+  uninstall:
+    disableHooks: true
+    keepHistory: false
+  chart:
+    spec:
+      chart: flux2
+      sourceRef:
+        kind: HelmRepository
+        name: fluxcd
+        namespace: flux-system
+      version: 2.17.2
+  valuesFrom:
+    - kind: ConfigMap
+      name: fluxcd-values
+      valuesKey: values.yaml
+  values:
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    tolerations:
+      - key: pool
+        value: infra
+        effect: NoSchedule

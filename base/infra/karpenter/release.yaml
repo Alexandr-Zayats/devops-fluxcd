@@ -1,0 +1,45 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: karpenter
+  namespace: ${karpenter_namespace}
+spec:
+  dependsOn:
+    - name: karpenter-crd
+  releaseName: karpenter
+  interval: 60m0s
+  targetNamespace: ${karpenter_namespace}
+  uninstall:
+    disableHooks: true
+    keepHistory: false
+  chartRef:
+    kind: OCIRepository
+    name: karpenter
+    namespace: flux-system
+
+  values:
+    replicas: 2
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        role: cluster-scalability
+    webhook:
+      enabled: false
+    #nodeSelector:
+    #  karpenter.sh/controller: 'true'
+    dnsPolicy: Default
+    tolerations:
+      - effect: NoSchedule
+        key: CriticalAddonsOnly
+        operator: Exists
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: "${karpenter_sa_role_arn}"
+    settings:
+      clusterEndpoint: "${eks_cluster_endpoint}"
+      clusterName: "${eks_cluster_name}"
+      #defaultInstanceProfile: KarpenterNodeInstanceProfile-${eks_cluster_name}
+      interruptionQueueName: "${karpenter_queue_name}"
+    #defaultProvisioner:
+    #  create: false

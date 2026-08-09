@@ -1,0 +1,26 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sentry
+  namespace: flux-system
+spec:
+  interval: 10m
+  timeout: 15m
+  releaseName: sentry
+  targetNamespace: sentry
+  chart:
+    spec:
+      chart: sentry
+      sourceRef:
+        kind: HelmRepository
+        name: sentry # demo-platform
+        namespace: flux-system
+      version: 29.4.1 # 27.11.3
+  valuesFrom:
+    - kind: ConfigMap
+      name: sentry-values
+      valuesKey: values.yaml
+  values:
+    certs: ${ssl_certs}
+    asHook: ${asHook}

@@ -1,0 +1,68 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ${env}-${SERVICE}
+  namespace: ${env}-cms
+  labels:
+    team: devops
+    service: cronTask
+spec:
+  schedule: "${SCHEDULE}"
+  timeZone: "Europe/Kyiv"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 105
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            team: devops
+            service: cronTask
+        spec:
+          serviceAccountName: cms
+          restartPolicy: OnFailure
+          nodeSelector:
+            kubernetes.io/arch: arm64
+            environment: ${env}
+          tolerations:
+            - effect: NoSchedule
+              key: pool
+              operator: Equal
+              value: cms
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: pool
+                        operator: In
+                        values:
+                          - ${env}-cms
+          containers:
+            - name: backup
+              image: backup:latest
+              imagePullPolicy: IfNotPresent
+              command: [ "/bin/sh", "-c" ]
+              args:
+                - |
+                  ${COMMAND}
+              envFrom:
+                - configMapRef:
+                    name: envs-common
+              env:
+                - name: DB_PASSWORD
+                  value: ${DB_USER_PASSWORD}
+                - name: DB_HOST
+                  value: mysql
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+

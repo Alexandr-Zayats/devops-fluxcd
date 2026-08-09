@@ -1,0 +1,25 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: cloudwatch-exporter
+  namespace: monitoring
+  labels:
+    vm-monitoring: true
+    app: aws-cloudwatch
+    owner: devops
+    stream: devops
+    env: ${env}
+    vmservicescrape: aws-cloudwatch
+    product: observability
+spec:
+  endpoints:
+    - port: http
+      scheme: http
+      interval: 60s
+  namespaceSelector:
+    matchNames:
+      - 'monitoring'
+  selector:
+    matchLabels:
+      app: prometheus-cloudwatch-exporter

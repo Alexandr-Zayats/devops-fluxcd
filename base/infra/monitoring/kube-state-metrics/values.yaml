@@ -1,0 +1,4 @@
+---
+persistence:
+  storageClass: gp2
+

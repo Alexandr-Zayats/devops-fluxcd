@@ -1,0 +1,49 @@
+---
+# Source: victoria-metrics-k8s-stack/templates/servicemonitors/coredns.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: vm-stack-victoria-metrics-k8s-stack-coredns
+  namespace: kube-system
+  labels:
+    app: vm-stack-victoria-metrics-k8s-stack-coredns
+    jobLabel: coredns
+    helm.sh/chart: victoria-metrics-k8s-stack-0.23.0
+    app.kubernetes.io/name: victoria-metrics-k8s-stack
+    app.kubernetes.io/instance: vm-stack
+    app.kubernetes.io/version: "v1.101.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  clusterIP: None
+  ports:
+    - name: http-metrics
+      port: 9153
+      protocol: TCP
+      targetPort: 9153
+  selector:
+    k8s-app: kube-dns
+---
+# Source: victoria-metrics-k8s-stack/templates/servicemonitors/coredns.yaml
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vm-stack-victoria-metrics-k8s-stack-coredns
+  namespace: monitoring
+  labels:
+    helm.sh/chart: victoria-metrics-k8s-stack-0.23.0
+    app.kubernetes.io/name: victoria-metrics-k8s-stack
+    app.kubernetes.io/instance: vm-stack
+    app.kubernetes.io/version: "v1.101.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app: vm-stack-victoria-metrics-k8s-stack-coredns
+      app.kubernetes.io/instance: "vm-stack"
+  namespaceSelector:
+    matchNames:
+      - "kube-system"
+  endpoints:
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      port: http-metrics
+  jobLabel: jobLabel
