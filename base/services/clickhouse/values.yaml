@@ -12,10 +12,11 @@ keeper:
 
 auth:
   username: clickhouse
-  password: clickhouse
+  password: ""
+  existingSecret: clickhouse-auth
+  existingSecretKey: admin-password
 
 clickhouse:
   image: "clickhouse/clickhouse-server"
   imageVersion: 24.8-alpine # "head-alpine"
   imagePullPolicy: "IfNotPresent"
-
